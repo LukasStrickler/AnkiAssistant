@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "ankiassistant"
+version = "0.1.0"
+description = "A smart tool to generate and export Anki-style flashcards using AI, with a user-friendly review workflow to ensure quality and accuracy."
+authors = ["timbo003 <tim.strohmenger@tisito.de>", "lukasstrickler <>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+ollama = "^0.4.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

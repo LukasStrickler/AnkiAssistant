@@ -1,0 +1,124 @@
+[
+    {
+        "concept": "What is Economics?",
+        "key_points": "Economics studies how individuals, businesses, and governments allocate resources to meet their needs and wants.",
+        "tags": [
+            "Economics"
+        ]
+    },
+    {
+        "concept": "Microeconomics vs. Macroeconomics",
+        "key_points": "Microeconomics focuses on individual decision-making (e.g., supply and demand), while Macroeconomics deals with large-scale economic factors such as GDP, inflation, and unemployment.",
+        "tags": [
+            "Economics",
+            "Microeconomics",
+            "Macroeconomics"
+        ]
+    },
+    {
+        "concept": "Law of Demand",
+        "key_points": "As the price of a good decreases, the quantity demanded increases, all else being equal.",
+        "tags": [
+            "Opportunity Cost",
+            "Supply and Demand",
+            "Economics Laws"
+        ]
+    },
+    {
+        "concept": "Law of Supply",
+        "key_points": "As the price of a good increases, the quantity supplied also increases, all else being equal.",
+        "tags": [
+            "Economics Laws",
+            "Supply and Demand"
+        ]
+    },
+    {
+        "concept": "Opportunity Cost",
+        "key_points": "The cost of choosing one alternative over another; for example, studying instead of working part-time results in lost wages.",
+        "tags": [
+            "Economics",
+            "Opportunity Cost"
+        ]
+    },
+    {
+        "concept": "Capitalism",
+        "key_points": "A capitalist economy is a market-driven system where individuals and businesses own and operate the production of goods and services.",
+        "tags": [
+            "Economic Systems",
+            "Government Role in Economy",
+            "Economics"
+        ]
+    },
+    {
+        "concept": "Socialism",
+        "key_points": "A socialist economy prioritizes collective ownership or community control over private property; governments regulate resources to achieve common goals.",
+        "tags": [
+            "Economic Systems",
+            "Government Role in Economy",
+            "Economics"
+        ]
+    },
+    {
+        "concept": "Mixed Economy",
+        "key_points": "Combines elements of both capitalism and socialism, typically involving a mix of private enterprise and government regulation.",
+        "tags": [
+            "Economic Systems",
+            "Government Role in Economy",
+            "Economics"
+        ]
+    },
+    {
+        "concept": "Gross Domestic Product (GDP)",
+        "key_points": "Measures the total value of goods and services produced within a country during a specific period, often used to assess economic performance.",
+        "tags": [
+            "Economic Indicators",
+            "Macroeconomics",
+            "Economics"
+        ]
+    },
+    {
+        "concept": "Inflation",
+        "key_points": "The rate at which the general level of prices for goods and services is rising over time, typically leading to a decrease in purchasing power.",
+        "tags": [
+            "Economic Indicators",
+            "Inflation",
+            "Macroeconomics"
+        ]
+    },
+    {
+        "concept": "Unemployment Rate",
+        "key_points": "The percentage of jobless individuals who are actively seeking employment or waiting to be recalled from layoff within the economy.",
+        "tags": [
+            "Economic Indicators",
+            "Unemployment",
+            "Macroeconomics"
+        ]
+    },
+    {
+        "concept": "Regulating Markets",
+        "key_points": "Governments use policies like price controls, antitrust laws, and advertising regulations to prevent monopolies and ensure fair competition.",
+        "tags": [
+            "Government Role in Economy",
+            "Economics Laws",
+            "Macroeconomics"
+        ]
+    },
+    {
+        "concept": "Fiscal Policy",
+        "key_points": "Governments influence the economy through taxation, government spending, and regulation of public savings programs to manage economic cycles.",
+        "tags": [
+            "Government Role in Economy",
+            "Economics Laws",
+            "Macroeconomics"
+        ]
+    },
+    {
+        "concept": "Monetary Policy",
+        "key_points": "Governments regulate the money supply and interest rates to influence economic growth, inflation, and employment levels.",
+        "tags": [
+            "Government Role in Economy",
+            "Economics Laws",
+            "Macroeconomics"
+        ]
+    }
+]
