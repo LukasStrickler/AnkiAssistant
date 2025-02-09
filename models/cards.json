@@ -1,96 +1,42 @@
 [
     {
-        "front": "What is Economics?",
-        "back": "Economics is a social science that studies how individuals, businesses, and governments allocate resources to meet their needs and wants.",
+        "front": "What is Data Science?",
+        "back": "Data science involves using statistics, machine learning, and programming to extract meaningful insights from data. It combines techniques from various fields to uncover hidden patterns and make informed decisions.",
         "tags": [
-            "Economics"
+            "data science",
+            "machine learning"
         ]
     },
     {
-        "front": "Define Microeconomics.",
-        "back": "Microeconomics is a branch of economics that focuses on the behavior of individual agents, such as consumers and firms, in decision-making processes. It examines how these agents allocate resources to satisfy their needs and wants. For example, it looks at supply and demand dynamics in specific markets to understand how prices are determined and how goods and services are exchanged. Microeconomics also analyzes cost structures for businesses and consumer preferences in making purchasing decisions.",
+        "front": "What are the key components of data science?",
+        "back": "Data science consists of several essential components: collecting raw data from various sources such as surveys, experiments, or public datasets. This data is then cleaned and processed to ensure accuracy and relevance. Analysis involves identifying patterns and trends using statistical methods and machine learning algorithms. Finally, the results are visualized through graphs, charts, or reports to effectively communicate insights.",
         "tags": [
-            "Economics",
-            "Microeconomics"
+            "data process",
+            "workflow"
         ]
     },
     {
-        "front": "What is the Law of Demand?",
-        "back": "The Law of Demand states that as the price of a good decreases, the quantity demanded increases, all else being equal. This relationship occurs because lower prices make goods more affordable and accessible, leading to increased purchases. The demand for a product also diminishes as its marginal utility decreases with each additional unit consumed.",
+        "front": "What are some applications of data science in healthcare?",
+        "back": "Data science is applied in healthcare for analyzing patient records to predict outcomes, improving diagnostics through predictive models, and optimizing treatment plans. For instance, algorithms can analyze genomic data to identify disease risks or detect anomalies in medical imaging.",
         "tags": [
-            "Law of Demand",
-            "Economics Laws",
-            "Opportunity Cost"
+            "applications",
+            "real-world use"
         ]
     },
     {
-        "front": "Relationship Between Price and Quantity Supplied",
-        "back": "As the price of a good increases, the quantity supplied also increases, all else being equal. This occurs because higher prices lead to greater incentives for producers to increase production and supply more goods to the market in order to maximize profits.",
+        "front": "What are some popular Python libraries used in data science?",
+        "back": "Python's Pandas library is widely used for data manipulation and analysis. NumPy provides support for large-scale numerical computations with efficient array structures. Matplotlib enables the creation of various plots and visualizations, making it a key tool for data visualization.",
         "tags": [
-            "Economics",
-            "Supply and Demand"
+            "programming languages",
+            "data science"
         ]
     },
     {
-        "front": "What does opportunity cost represent in economics?",
-        "back": "Opportunity cost represents the value of the next best alternative you lose when making a decision. For example, choosing to study for an exam instead of working part-time results in the loss of potential wages.",
+        "front": "What is Jupyter Notebook?",
+        "back": "Jupyter Notebook is an interactive environment that allows users to create and share live code, notes, and visualizations. It supports multiple programming languages like Python, R, and Julia, making it a versatile tool for data manipulation, visualization, and analysis. Within a web browser, it provides a platform where code can be edited, run, and outputs (including tables, charts, and text) can be displayed side by side.",
         "tags": [
-            "Economics",
-            "Opportunity Cost"
-        ]
-    },
-    {
-        "front": "What is capitalism?",
-        "back": "Capitalism is a market-driven economic system where individuals and businesses own and operate the production of goods and services.",
-        "tags": [
-            "Economic Systems",
-            "Government Role in Economy",
-            "Economics"
-        ]
-    },
-    {
-        "front": "What is Socialism?",
-        "back": "Socialism is an economic and social philosophy based on common ownership of the means of production, collectively controlled by the community or government for public welfare. In a socialist economy, private property is limited or eliminated, and governments regulate resources to achieve equality and fairness in society.",
-        "tags": [
-            "Economic Systems",
-            "Government Role in Economy",
-            "Economics"
-        ]
-    },
-    {
-        "front": "What is a mixed economy?",
-        "back": "A mixed economy combines elements of both capitalism and socialism, typically involving a mix of private enterprise and government regulation. Countries like the United States and Germany often exhibit characteristics of a mixed economy. The government provides essential goods and services such as welfare, healthcare, and education to its citizens while relying on market mechanisms for other aspects of the economy.",
-        "tags": [
-            "Economic Systems",
-            "Government Role in Economy",
-            "Economics"
-        ]
-    },
-    {
-        "front": "What is GDP?",
-        "back": "GDP measures the total value of goods and services produced within a country during a specific period, often used to assess economic performance.",
-        "tags": [
-            "Economic Indicators",
-            "Macroeconomics",
-            "Economics"
-        ]
-    },
-    {
-        "front": "What is inflation?",
-        "back": "Inflation is the general increase in prices of goods and services over time, which leads to a decrease in the purchasing power of money.",
-        "tags": [
-            "Economic Indicators",
-            "Inflation",
-            "Macroeconomics"
-        ]
-    },
-    {
-        "front": "What does unemployment rate measure?",
-        "back": "The unemployment rate measures the percentage of individuals who are jobless but actively seeking employment or awaiting recall from their previous job, typically after being laid off.",
-        "tags": [
-            "Economic Indicators",
-            "Unemployment",
-            "Macroeconomics"
+            "tools",
+            "environments"
         ]
     },
     {
@@ -102,21 +48,11 @@
         ]
     },
     {
-        "front": "What does Fiscal Policy involve?",
-        "back": "Fiscal Policy is a tool used by governments to influence economic conditions, such as growth, inflation, and employment. It primarily involves three key actions: taxation, government spending, and the regulation of public savings programs. By adjusting these factors, governments aim to stabilize or improve the overall state of the economy.",
+        "front": "What are common challenges faced by organizations integrating Data Science?",
+        "back": "Organizations often face several challenges when integrating Data Science approaches. Poor data quality, such as missing values or inaccuracies, can lead to unreliable insights. Ethical considerations like privacy concerns and bias in algorithms must be addressed to ensure responsible use of data. Handling large datasets efficiently requires robust computational resources and effective processing techniques.",
         "tags": [
-            "Government Role in Economy",
-            "Economics Laws",
-            "Macroeconomics"
-        ]
-    },
-    {
-        "front": "What does Monetary Policy involve?",
-        "back": "Monetary Policy involves governments regulating the money supply and setting interest rates to influence economic growth, control inflation, ensure full employment, and maintain stable price levels.",
-        "tags": [
-            "Government Role in Economy",
-            "Economics Laws",
-            "Macroeconomics"
+            "challenges",
+            "ethical considerations"
         ]
     }
 ]

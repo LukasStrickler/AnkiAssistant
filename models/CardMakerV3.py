@@ -5,7 +5,7 @@ import os
 
 # Load lecture notes from a markdown file
 def load_notes():
-    with open("models/mdFiles/basicsOfEconomics.md", "r") as file:
+    with open("models/mdFiles/introToDataSci.md", "r") as file:
         return file.read()
 
 # Load the rules for card creation
