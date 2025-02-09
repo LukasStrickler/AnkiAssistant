@@ -16,23 +16,17 @@ def load_notes(file_path="models/mdFiles/basicsOfEconomics.md"):
 # Load the rules for card creation
 def load_rules():
     return """### Rules for Creating Cards
-1.  **Keep it Simple**: Your brain likes short and simple ideas. If something is too long or complex, split it into smaller parts.
-2.  **Focus on Single Ideas**: Each piece of knowledge should focus on just one concept. Don’t try to learn multiple things at once; it can get confusing.
-3.  **Clarity is Key**: Make sure your information is clear and straightforward. Ambiguity makes it harder to remember.
-4.  **Use Positive Phrasing**: Frame your knowledge in positive terms. Instead of saying, “Don’t forget to review,” say, “Remember to review.”
-5.  **Use Existing Decks**: Use existing decks whenever possible.
-6.  **Make Connections**: Link new ideas to things you already know. Building associations helps your brain understand and recall information better.
-7.  **Be Concise**: Keep the front and back of the cards concise.
-8.  **Be Specific**: Vague or general knowledge is hard to retain. The more specific you are, the better.
-9.  **Avoid Memorizing Isolated Facts**: Facts are easier to remember when they’re part of a bigger story or context. Avoid rote memorization.
-10. **Use Examples**: Examples make abstract concepts concrete. If you’re learning a rule or principle, find examples to illustrate it.
-11. **Highlight Contrasts**: Understanding differences between concepts helps you remember them more clearly. Compare and contrast related ideas.
-12. **Avoid Interference**: Avoid learning similar things at the same time, as they can blur together. Focus on one topic before moving to another.
-13. **Simplify and Streamline**: Complex explanations can overwhelm you. Always aim to simplify your knowledge without losing its essence.
-14. **Use Active Forms**: Frame your learning actively, not passively. For example, ask, “How does this work?” instead of “What is this?”
-15. **Be Consistent**: Stick to a consistent way of organizing your knowledge. This helps your brain recognize patterns and recall faster.
-16. **Ask Why, How, and What If**: Go beyond surface-level learning by questioning the material. This deepens your understanding and retention.
-17. **Use Markdown**: Use markdown formatting for the back of the card.
+1.  **Keep it Concise**: The front and back of the cards should be as short as possible.
+2.  **Single Idea Focus**: Each card should focus on a single, well-defined concept.
+3.  **Clarity is Key**: Ensure the information is clear and easy to understand.
+4.  **Positive Phrasing**: Use positive language.
+5.  **Use Existing Decks**: Prioritize existing decks.
+6.  **Make Connections**: Link new ideas to existing knowledge.
+7.  **Front Length**: The front of the card (question/term) should be very brief (1-5 words).
+8.  **Back Length**: The back of the card (explanation) should be concise (1-3 sentences).
+9.  **Be Specific**: Avoid vague or general statements.
+10. **Use Examples Sparingly**: Only include examples if they significantly clarify the concept.
+11. **Markdown Formatting**: Use markdown for the back of the card.
 """
 
 # Load existing decks
@@ -74,7 +68,7 @@ Follow these rules when creating the outlines:
 
 ### Output Format:
 Return a JSON array where each object has:
--   "concept": The main idea.
+-   "concept": The main idea (1-5 words).
 -   "key_points": A summary (1-3 sentences).
 -   "deck": The deck the card should belong to.
 Example:
@@ -95,7 +89,7 @@ Now, generate the outlines:
         outlines_json += response["message"]["content"]
 
     # Extract JSON array using regex
-    json_match = re.search(r"\[\s*{.*?}\s*\]", outlines_json, re.DOTALL)
+    json_match = re.search(r"\[\s*{\s*\"concept\".*?}\s*\]", outlines_json, re.DOTALL)
     if json_match:
         try:
             outlines = json.loads(json_match.group(0))
@@ -112,7 +106,7 @@ Now, generate the outlines:
 # Generate Full Flashcards
 def generate_cards_from_outlines(outlines):
     full_cards = []
-    rules = load_rules
+    rules = load_rules()
     for outline in outlines:
         concept = outline["concept"]
         key_points = outline["key_points"]
@@ -128,8 +122,8 @@ Generate a flashcard based on the following outline. Follow the formatting rules
 
 ### Output Format:
 Return a JSON object with:
--   "front": A question or term related to the concept.
--   "back": A detailed explanation using markdown formatting.
+-   "front": A question or term related to the concept (1-5 words).
+-   "back": A detailed explanation using markdown formatting (1-3 sentences).
 -   "deck": The deck the card should belong to.
 
 Example:

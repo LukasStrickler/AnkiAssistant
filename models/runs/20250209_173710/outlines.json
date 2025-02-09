@@ -1,0 +1,57 @@
+[
+    {
+        "concept": "What is Data Science?",
+        "key_points": "Data science involves using statistics, machine learning, and programming to extract meaningful insights from data.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Key Components of Data Science",
+        "key_points": "Involves data collection, cleaning, analysis, and visualization to gain insights.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Applications in Healthcare",
+        "key_points": "Predicting patient outcomes using data science techniques.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Applications in Finance",
+        "key_points": "Detecting fraud and providing personalized financial recommendations.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Applications in Marketing",
+        "key_points": "Generating personalized marketing strategies through data analysis.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Programming Languages in Data Science",
+        "key_points": "Python and R are widely used for data manipulation, analysis, and visualization.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Tools in Data Science",
+        "key_points": "Jupyter Notebook and SQL are essential tools for data processing and database management.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Workflow of Data Science",
+        "key_points": "The process includes problem definition, data collection, analysis, modeling, and deployment.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Challenges in Data Science - Data Quality",
+        "key_points": "Inadequate or poor-quality data can lead to unreliable insights.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Challenges in Data Science - Ethical Issues",
+        "key_points": "Ethical concerns arise with data privacy, bias, and responsible AI deployment.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "concept": "Challenges in Data Science - Scalability",
+        "key_points": "Handling large datasets efficiently is a significant challenge for many systems.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    }
+]

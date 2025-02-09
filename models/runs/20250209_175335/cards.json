@@ -1,0 +1,37 @@
+[
+    {
+        "front": "What is Economics?",
+        "back": "Economics studies how individuals, businesses, and governments allocate resources to achieve the best possible outcomes in terms of personal, societal, and environmental well-being.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "What is microeconomics?",
+        "back": "Microeconomics focuses on how individuals, businesses, and markets make choices regarding limited resources (like time, money, and physical goods) to maximize utility or minimize cost. It examines relationships between these individual factors affecting the supply of a good or service, demand for it, prices, and the behavior of buyers and sellers.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "What is opportunity cost?",
+        "back": "Opportunity cost is the cost of choosing one alternative over another; an example is studying instead of working part-time.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "What is GDP?",
+        "back": "Gross Domestic Product (GDP) measures the total value of all finished goods and services produced within a country in a year, adjusted for prices and excluding taxes and imports.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "What causes inflation?",
+        "back": "Inflation occurs when prices rise over time for goods and services. This can be caused by rising demand, limited supply, or economic growth.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "How is the unemployment rate measured?",
+        "back": "The unemployment rate measures how many people are actively seeking employment but are unable to find it. It's calculated based on labor stats such as education levels, age, gender, and region. Other indicators like job creation rates are used for more precise estimates, though less commonly reported.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "front": "Government Policies",
+        "back": "The government employs various policies to regulate markets, manage public finances through fiscal policies (taxation, spending), and influence economic activity via monetary policies.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    }
+]
