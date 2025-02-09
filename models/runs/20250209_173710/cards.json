@@ -1,0 +1,32 @@
+[
+    {
+        "front": "What is data science?",
+        "back": "Data Science is a field that combines statistics, programming, and machine learning to analyze and interpret complex datasets. It helps organizations make informed decisions by extracting patterns and insights from data.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "front": "What is data analysis used for in marketing?",
+        "back": "Data analysis in marketing involves using statistical methods, surveys, and algorithms to understand customer behavior, sales trends, and product performance. It helps businesses make informed decisions by identifying patterns, optimizing strategies, and improving efficiency. For example, it can be used to segment customers based on preferences, track campaign effectiveness, optimize product features, manage inventory, assess risk, generate leads, streamline customer relationships, set pricing, conduct competitive analysis, and consider environmental impacts.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "front": "What is the primary programming language used in data science training for this deck?",
+        "back": "In our data science training, we focus on Python and R, which are widely used languages for data manipulation, analysis, and visualization. Python is often preferred for its extensive ecosystem of libraries and ease of learning, while R is favored for statistical analysis due to its comprehensive packages like ggplot2 and dplyr.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "front": "What is Jupyter Notebook?",
+        "back": "Jupyter Notebook is an open-source web application that allows you to create and share interactive computational environments. It's widely used in data science for tasks like data manipulation, visualization, and automating workflows. It supports Python programming and integrates with libraries like Pandas, NumPy, and Matplotlib for data analysis and visualization.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "front": "What is one challenge in data science where poor-quality data leads to unreliable insights?",
+        "back": "In data science, reliable and accurate insights are crucial for making informed decisions. One common issue that arises from using Poor-Quality Data is that it can lead to Unreliable Insights.\n\nFor example, if a dataset contains Missing Values, the analysis might yield misleading Results because certain calculations or predictions cannot be made without those gaps. Similarly, Inconsistent Formatting and Omitting Relevant Features can cause Analytical Bias by filtering out important Information that should influence the outcome.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    },
+    {
+        "front": "What are ethical issues in data science?",
+        "back": "Ethical issues in data science arise when data is used to make decisions that affect people or society. These include challenges like data privacy, algorithmic bias, and responsible AI deployment. Ensuring these issues are addressed is crucial for the integrity and reliability of data science projects.",
+        "deck": "UNI::Sem5::Data Science::Einf\u00fchrung"
+    }
+]
