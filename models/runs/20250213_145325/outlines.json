@@ -1,0 +1,42 @@
+[
+    {
+        "concept": "What is Economics?",
+        "key_points": "Economics studies how individuals, businesses, and governments allocate resources to meet their needs and wants.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Microeconomics vs. Macroeconomics",
+        "key_points": "Microeconomics focuses on individual decision-making (e.g., supply and demand), while macroeconomics deals with large-scale economic factors like GDP, inflation, and unemployment.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Supply and Demand",
+        "key_points": "Explains how the interaction between buyers and sellers determines prices. Example: As price decreases, demand increases (Law of Demand); as price increases, supply increases (Law of Supply).",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Opportunity Cost",
+        "key_points": "The cost of choosing one option over another. Example: Choosing to study instead of working part-time.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Economic Systems",
+        "key_points": "Types include capitalism (market-driven), socialism (government regulates resources), and mixed economy (combination of both).",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Gross Domestic Product (GDP)",
+        "key_points": "Measures the total value of goods and services produced within a country.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Inflation and Unemployment",
+        "key_points": "Inflation is an increase in prices over time (e.g., rising cost of groceries); unemployment rate is the percentage of jobless individuals actively seeking work.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    },
+    {
+        "concept": "Role of Government in Economics",
+        "key_points": "Regulates markets, implements fiscal policies (government spending and taxation), and manages monetary policies to stabilize the economy.",
+        "deck": "UNI::Sem5::Economics::Basics"
+    }
+]

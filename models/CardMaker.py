@@ -4,6 +4,9 @@ import re
 import os
 import datetime
 
+outlineModel = "deepseek-r1:7b"
+cardModel = "tinyllama:latest"
+
 # Load lecture notes from a markdown file
 def load_notes(file_path="models/mdFiles/basicsOfEconomics.md"):
     try:
