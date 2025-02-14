@@ -38,6 +38,7 @@ const config = {
         }
       }
     ],
+    "no-console": "error",
     "drizzle/enforce-delete-with-where": [
       "error",
       {
