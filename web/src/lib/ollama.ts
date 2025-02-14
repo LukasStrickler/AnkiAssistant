@@ -1,5 +1,11 @@
 import { logger } from "./logger";
 import { z } from "zod";
+import { type ConnectionStatus } from "@/types/connection-status";
+
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+}
 
 interface OllamaRequest {
     model: string;
@@ -10,11 +16,6 @@ interface OllamaRequest {
         top_p?: number;
         // ... other options
     };
-}
-
-interface ChatMessage {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
 }
 
 interface OllamaResponse {
@@ -43,7 +44,7 @@ export interface OllamaStreamChunk {
     // Add other possible fields
 }
 
-interface ChatMessageDelta {
+export interface ChatMessageDelta {
     content: string;
     done?: boolean;
 }
@@ -82,6 +83,18 @@ export class OllamaClient {
         return response.json() as Promise<T>;
     }
 
+
+    async getConnectionStatus(): Promise<ConnectionStatus> {
+        try {
+            const response = await fetch(`${this.apiUrl}/api/tags`);
+            const data = await response.json() as OllamaListResponse;
+            return data.models.length > 0 ? 'connected' : 'error';
+        } catch (error) {
+            logger.error('Failed to get connection status', error)
+            return 'disconnected';
+        }
+    }
+
     async listModels(): Promise<string[]> {
         const response = await fetch(`${this.apiUrl}/api/tags`);
         const data = await response.json() as OllamaListResponse;
@@ -103,7 +116,7 @@ export class OllamaClient {
         onDelta: (delta: ChatMessageDelta) => void
     ): Promise<void> {
         try {
-            const response = await fetch('/api/ollama/chat', {
+            const response = await fetch(`${this.apiUrl}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,23 +129,34 @@ export class OllamaClient {
                 }),
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            }
+
             const reader = response.body?.getReader();
             if (!reader) throw new Error('No response body');
 
+            const decoder = new TextDecoder();
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = new TextDecoder().decode(value);
+                const chunk = decoder.decode(value);
                 const lines = chunk.split('\n').filter(line => line.trim());
 
                 for (const line of lines) {
-                    const parsed = OllamaStreamChunkSchema.parse(JSON.parse(line));
-                    if (parsed.message) {
-                        onDelta({
-                            content: parsed.message.content || '',
-                            done: parsed.done
-                        });
+                    try {
+                        const validatedChunk = OllamaStreamChunkSchema.parse(JSON.parse(line));
+                        if (validatedChunk.message) {
+                            onDelta({
+                                content: validatedChunk.message.content,
+                                done: validatedChunk.done
+                            });
+                        }
+                    } catch (parseError) {
+                        logger.error('Failed to parse chunk:', line, parseError);
+                        continue;
                     }
                 }
             }
