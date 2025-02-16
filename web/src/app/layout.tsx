@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
@@ -15,19 +16,22 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const sidebarState = cookieStore.get("sidebar:state")?.value;
+  const defaultOpen = sidebarState ? sidebarState === "true" : true;
+
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <TRPCReactProvider>
-          <SidebarProvider>
+          <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar />
             <SidebarInset>
               {children}
               <Toaster />
-
             </SidebarInset>
           </SidebarProvider>
         </TRPCReactProvider>
