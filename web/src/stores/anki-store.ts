@@ -1,7 +1,7 @@
 import { ankiClient, type DeckTreeNode } from '@/lib/anki'
 import { logger } from '@/lib/logger'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, type PersistOptions, type StorageValue } from 'zustand/middleware'
 
 interface AnkiState {
     decks: DeckTreeNode[]
@@ -15,6 +15,12 @@ interface AnkiState {
     toggleDeckExpansion: (deckFullName: string) => void
     collapseAllDecks: () => void
     expandAllDecks: () => void
+}
+
+type PersistedState = {
+    decks: DeckTreeNode[]
+    selectedDeck: string | null
+    expandedDecks: string[]
 }
 
 export const useAnkiStore = create<AnkiState>()(
@@ -72,35 +78,30 @@ export const useAnkiStore = create<AnkiState>()(
         }),
         {
             name: 'anki-storage',
-            partialize: (state) => ({
+            partialize: (state: AnkiState): PersistedState => ({
                 decks: state.decks,
                 selectedDeck: state.selectedDeck,
                 expandedDecks: Array.from(state.expandedDecks)
             }),
             storage: {
-                getItem: (name) => {
+                getItem: (name): StorageValue<PersistedState> | null => {
                     const str = localStorage.getItem(name);
                     if (!str) return null;
 
-                    const parsed = JSON.parse(str);
-                    return {
-                        state: {
-                            ...parsed.state,
-                            expandedDecks: new Set(parsed.state?.expandedDecks || [])
-                        }
-                    };
+                    const parsed = JSON.parse(str) as StorageValue<PersistedState>;
+                    return parsed;
                 },
-                setItem: (name, value) => {
-                    const state = {
-                        ...value,
-                        state: {
-                            ...value.state,
-                            expandedDecks: Array.from(value.state.expandedDecks)
-                        }
-                    };
-                    localStorage.setItem(name, JSON.stringify(state));
+                setItem: (name, value: StorageValue<PersistedState>) => {
+                    localStorage.setItem(name, JSON.stringify(value));
                 },
                 removeItem: (name) => localStorage.removeItem(name)
+            },
+            onRehydrateStorage: (state) => {
+                return (persistedState) => {
+                    if (persistedState) {
+                        persistedState.expandedDecks = new Set(persistedState.expandedDecks);
+                    }
+                };
             }
         }
     )
