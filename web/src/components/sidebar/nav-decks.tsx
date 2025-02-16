@@ -7,6 +7,8 @@ import {
   Trash2,
   ChevronRight,
   ArrowRightCircle,
+  ChevronsDownUp,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -50,7 +52,7 @@ function deckToPath(deckFullName: string) {
 
 
 export function NavDecks() {
-  const { decks, refreshDecks, isLoading } = useAnkiStore();
+  const { decks, refreshDecks, isLoading, collapseAllDecks, expandAllDecks, expandedDecks } = useAnkiStore();
 
   useEffect(() => {
     void refreshDecks();
@@ -58,7 +60,34 @@ export function NavDecks() {
 
   return (
     <SidebarGroup className="flex flex-col h-full group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Decks</SidebarGroupLabel>
+      <div className="flex justify-between items-center px-2">
+        <SidebarGroupLabel>Decks</SidebarGroupLabel>
+        <div className="flex items-center gap-1 pr-1">
+          {expandedDecks.size > 0 ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={collapseAllDecks}
+              className="h-8 w-8 rounded-full"
+              title="Collapse all decks"
+            >
+              <ChevronsDownUp className="h-4 w-4" />
+              <span className="sr-only">Collapse all decks</span>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={expandAllDecks}
+              className="h-8 w-8 rounded-full"
+              title="Expand all decks"
+            >
+              <ChevronsUpDown className="h-4 w-4" />
+              <span className="sr-only">Expand all decks</span>
+            </Button>
+          )}
+        </div>
+      </div>
       <SidebarMenu className="flex-1 min-h-0">
         <ScrollArea className="h-full">
           <div className="pr-2">
@@ -82,7 +111,7 @@ export function NavDecks() {
 
 function DeckItem({ deck }: { deck: DeckTreeNode }) {
   const { isMobile } = useSidebar();
-  const { selectDeck } = useAnkiStore();
+  const { selectDeck, expandedDecks, toggleDeckExpansion } = useAnkiStore();
   const router = useRouter();
 
   const truncateDeckName = (name: string, level: number) => {
@@ -96,7 +125,11 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
   };
 
   return (
-    <Collapsible asChild>
+    <Collapsible
+      open={expandedDecks.has(deck.fullName)}
+      onOpenChange={() => toggleDeckExpansion(deck.fullName)}
+      asChild
+    >
       <SidebarMenuItem>
         <div className="flex items-center w-full min-w-fit">
           <HoverCard>
@@ -213,6 +246,6 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
           </CollapsibleContent>
         )}
       </SidebarMenuItem>
-    </Collapsible >
+    </Collapsible>
   );
 }
