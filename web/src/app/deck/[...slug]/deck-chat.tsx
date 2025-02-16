@@ -1,13 +1,13 @@
 "use client";
 
-import { AnkiCard, ankiClient } from "@/lib/anki";
+import { type AnkiCard, ankiClient } from "@/lib/anki";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import renderMathInElement from 'katex/contrib/auto-render';
 import 'katex/dist/katex.min.css';
-import { ArrowRightCircle, ChevronRight } from "lucide-react";
+import { ArrowRightCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function AllDecks({ cards }: { cards: AnkiCard[] }) {
@@ -15,7 +15,7 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
     // Memoize deck calculation
     const decks = useMemo(() => {
         return cards.reduce((acc, card) => {
-            acc[card.deckName] = [...(acc[card.deckName] || []), card];
+            acc[card.deckName] = [...(acc[card.deckName] ?? []), card];
             return acc;
         }, {} as Record<string, AnkiCard[]>);
     }, [cards]); // Only recalculate when cards change
@@ -112,7 +112,7 @@ export default function DeckChat({ currentDeck }: { currentDeck: string }) {
     const [cards, setCards] = useState<AnkiCard[]>([]);
 
     useEffect(() => {
-        ankiClient.getDeckCards(currentDeck).then(setCards);
+        void ankiClient.getDeckCards(currentDeck).then(setCards);
     }, [currentDeck]);
 
     return <div className="flex flex-row h-[calc(100vh-100px)] gap-4">

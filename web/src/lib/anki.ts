@@ -100,7 +100,7 @@ export class AnkiClient {
         const IdsToDeckName = await this.fetchDecksToIds(cardIds);
         const cards = await this.fetchCardsInfo(cardIds);
         cards.forEach(card => {
-            card.deckName = IdsToDeckName.get(card.cardId) || '';
+            card.deckName = IdsToDeckName.get(card.cardId) ?? '';
         });
 
         await this.replaceMediaReferencesWithDataUrls(cards);
@@ -208,7 +208,7 @@ export class AnkiClient {
      * @param content Base64-encoded file content
      */
     private createMediaDataUrl(filename: string, content: string): string {
-        const fileExtension = filename.split('.').pop()?.toLowerCase() || 'png';
+        const fileExtension = filename.split('.').pop()?.toLowerCase() ?? 'png';
         return `data:image/${fileExtension};base64,${content}`;
     }
 
