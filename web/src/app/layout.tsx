@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { TRPCReactProvider } from "@/trpc/react";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SIDEBAR_COOKIE_NAME } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
-  const sidebarState = cookieStore.get("sidebar:state")?.value;
+  const sidebarState = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value;
   const defaultOpen = sidebarState ? sidebarState === "true" : true;
 
   return (
