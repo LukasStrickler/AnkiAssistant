@@ -101,7 +101,7 @@ function CardContent({ card }: { card: AnkiCard }) {
         }
     }, [card]);
 
-    return <div className="p-4 border rounded-lg rounded-xl">
+    return <div className="p-4 border rounded-lg rounded-xl [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
         <div ref={frontRef} dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} />
         <Separator orientation="horizontal" className="my-1" />
         <div ref={backRef} dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} />
