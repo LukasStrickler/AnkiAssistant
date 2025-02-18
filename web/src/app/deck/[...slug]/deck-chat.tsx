@@ -9,6 +9,7 @@ import renderMathInElement from 'katex/contrib/auto-render';
 import 'katex/dist/katex.min.css';
 import { ArrowRightCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/logger";
 
 function AllDecks({ cards }: { cards: AnkiCard[] }) {
     const router = useRouter();
@@ -46,7 +47,7 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
             {Object.entries(decks).map(([deckName, cards]) => (
                 <AccordionItem key={deckName} value={deckName} className="border rounded-lg rounded-xl">
                     <AccordionTrigger className="flex items-center justify-between px-4 py-2 hover:no-underline group">
-                        <h2 className="text-lg font-bold">{deckName}</h2>
+                        <h2 className="text-lg font-bold">{deckName} <span className="text-muted-foreground text-sm">({cards.length})</span></h2>
                         <div className="flex items-center ml-auto mr-2">
                             {deckCount > 1 && (
                                 <ArrowRightCircle
@@ -112,7 +113,32 @@ export default function DeckChat({ currentDeck }: { currentDeck: string }) {
     const [cards, setCards] = useState<AnkiCard[]>([]);
 
     useEffect(() => {
-        void ankiClient.getDeckCards(currentDeck).then(setCards);
+        let isMounted = true;
+        const controller = new AbortController();
+
+        const loadCards = async () => {
+            try {
+                const stream = ankiClient.streamDeckCards(currentDeck);
+                for await (const batch of stream) {
+                    if (!isMounted) return;
+
+                    setCards(prev => {
+                        // Merge new cards with existing, updating any that were placeholders
+                        const merged = new Map(prev.map(c => [c.cardId, c]));
+                        batch.forEach(newCard => merged.set(newCard.cardId, newCard));
+                        return Array.from(merged.values());
+                    });
+                }
+            } catch (error) {
+                if (isMounted) logger.error('Card loading interrupted', error);
+            }
+        };
+
+        loadCards();
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
     }, [currentDeck]);
 
     return <div className="flex flex-row h-[calc(100vh-100px)] gap-4">
