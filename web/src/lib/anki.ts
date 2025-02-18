@@ -27,6 +27,13 @@ export interface AnkiCard {
     };
 }
 
+export interface AnkiCardRaw {
+    cardId: number;
+    deckName: string;
+    fields: {
+        [key: string]: { value: string, order: number };
+    };
+}
 export class AnkiClient {
     private apiUrl: string;
 
@@ -133,11 +140,33 @@ export class AnkiClient {
     }
 
     private async fetchCardsInfo(cardIds: number[]): Promise<AnkiCard[]> {
-        return this.request<AnkiCard[]>({
+        const cards = await this.request<AnkiCardRaw[]>({
             action: "cardsInfo",
             version: 6,
             params: { cards: cardIds }
         });
+
+        const cardMap = new Map<number, AnkiCard>();
+        for (const { cardId, deckName, fields } of cards) {
+            const fieldValues = Object.values(fields);
+            const frontField = fieldValues.find(f => f.order === 0);
+            const backField = fieldValues.find(f => f.order === 1);
+
+            if (!frontField || !backField) {
+                logger.error(`Missing front or back field for card ${cardId}`, { cardId, deckName, fields });
+                continue;
+            }
+
+            cardMap.set(cardId, {
+                cardId,
+                deckName,
+                fields: {
+                    Front: { value: frontField.value },
+                    Back: { value: backField.value }
+                }
+            });
+        }
+        return Array.from(cardMap.values());
     }
 
     private async replaceMediaReferencesWithDataUrls(cards: AnkiCard[]): Promise<void> {
