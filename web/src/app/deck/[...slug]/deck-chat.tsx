@@ -2,7 +2,7 @@
 
 import { type AnkiCard, ankiClient } from "@/lib/anki";
 import { Separator } from "@/components/ui/separator";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -13,25 +13,31 @@ import { logger } from "@/lib/logger";
 
 function AllDecks({ cards }: { cards: AnkiCard[] }) {
     const router = useRouter();
-    // Memoize deck calculation
-    const decks = useMemo(() => {
-        return cards.reduce((acc, card) => {
+    const [openItems, setOpenItems] = useState<number[]>(Array.from({ length: 100 }, (_, i) => i));
+    const [userModified, setUserModified] = useState(false);
+
+    const { decks, deckNames } = useMemo(() => {
+        const deckMap = cards.reduce((acc, card) => {
             acc[card.deckName] = [...(acc[card.deckName] ?? []), card];
             return acc;
         }, {} as Record<string, AnkiCard[]>);
-    }, [cards]); // Only recalculate when cards change
+        return {
+            decks: deckMap,
+            deckNames: Object.keys(deckMap)
+        };
+    }, [cards]);
 
-    const [openItems, setOpenItems] = useState<string[]>([]);
-    const deckCount = Object.keys(decks).length;
-
+    // Initialize open items with deck names on first load
     useEffect(() => {
-        // Get stable array of deck names
-        const deckNames = Object.keys(decks);
-        // Only update if there's an actual change
-        if (JSON.stringify(deckNames) !== JSON.stringify(openItems)) {
-            setOpenItems(deckNames);
+        if (deckNames.length > 0 && openItems.length === 0) {
+            setOpenItems(deckNames.map(name => deckNames.indexOf(name)));
         }
-    }, [decks]); // Now using memoized decks
+    }, [deckNames]); // Only run when deckNames changes
+
+    const handleAccordionChange = (value: string[]) => {
+        if (!userModified) setUserModified(true);
+        setOpenItems(value.map(v => parseInt(v)));
+    };
 
     const deckToPath = (deckFullName: string) => {
         return `/deck/${deckFullName.split('::').map(encodeURIComponent).join('/')}`;
@@ -41,15 +47,15 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
         <Accordion
             type="multiple"
             className="space-y-2 pr-1"
-            value={openItems}
-            onValueChange={setOpenItems}
+            value={openItems.map(String)}
+            onValueChange={handleAccordionChange}
         >
-            {Object.entries(decks).map(([deckName, cards]) => (
-                <AccordionItem key={deckName} value={deckName} className="border rounded-lg rounded-xl">
+            {deckNames.map((deckName, index) => (
+                <AccordionItem key={deckName} value={String(index)} className="border rounded-xl">
                     <AccordionTrigger className="flex items-center justify-between px-4 py-2 hover:no-underline group">
-                        <h2 className="text-lg font-bold">{deckName} <span className="text-muted-foreground text-sm">({cards.length})</span></h2>
+                        <h2 className="text-lg font-bold">{deckName} <span className="text-muted-foreground text-sm">({decks[deckName]?.length})</span></h2>
                         <div className="flex items-center ml-auto mr-2">
-                            {deckCount > 1 && (
+                            {deckNames.length > 1 && (
                                 <ArrowRightCircle
                                     className="h-5 w-5 transition-opacity duration-200 opacity-0 group-hover:opacity-100 cursor-pointer text-muted-foreground hover:text-foreground"
                                     onClick={(e) => {
@@ -61,7 +67,7 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="pt-0 px-2">
-                        <DeckList cards={cards} />
+                        <DeckList cards={decks[deckName] ?? []} />
                     </AccordionContent>
                 </AccordionItem>
             ))}
@@ -70,42 +76,75 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
 }
 
 function DeckList({ cards }: { cards: AnkiCard[] }) {
-    return <div className="flex flex-col gap-2">
-        {cards.map((card) => (
-            <CardContent key={card.cardId} card={card} />
-        ))}
-    </div>
+    return (
+        <div className="flex flex-col gap-2">
+            {cards.map((card) => (
+                <div key={card.cardId} className="card-streaming">
+                    <CardContent card={card} />
+                </div>
+            ))}
+        </div>
+    );
 }
 
 function CardContent({ card }: { card: AnkiCard }) {
     const frontRef = useRef<HTMLDivElement>(null);
     const backRef = useRef<HTMLDivElement>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
 
+    // Add constant for shared render config
+    const katexConfig = {
+        delimiters: [
+            { left: "\\(", right: "\\)", display: false },
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true }
+        ]
+    };
+
+    // Add fade-in transition when content loads
     useEffect(() => {
-        if (frontRef.current) {
-            renderMathInElement(frontRef.current, {
-                delimiters: [
-                    { left: "\\(", right: "\\)", display: false },
-                    { left: "$$", right: "$$", display: true },
-                    { left: "\\[", right: "\\]", display: true }
-                ]
-            });
-        }
-        if (backRef.current) {
-            renderMathInElement(backRef.current, {
-                delimiters: [
-                    { left: "\\(", right: "\\)", display: false },
-                    { left: "$$", right: "$$", display: true },
-                    { left: "\\[", right: "\\]", display: true }
-                ]
-            });
+        if (card.fields.Front.value && card.fields.Back.value) {
+            setIsLoaded(true);
         }
     }, [card]);
 
-    return <div className="p-4 border rounded-lg rounded-xl [&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
-        <div ref={frontRef} dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} />
+    // Skeleton loader component
+    const FieldSkeleton = () => (
+        <div className="space-y-2 animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+    );
+
+    useEffect(() => {
+        // Combine into single effect with cleanup
+        const front = frontRef.current;
+        const back = backRef.current;
+
+        if (front) renderMathInElement(front, katexConfig);
+        if (back) renderMathInElement(back, katexConfig);
+
+        return () => {
+            if (front) front.querySelectorAll('.katex').forEach(el => el.remove());
+            if (back) back.querySelectorAll('.katex').forEach(el => el.remove());
+        };
+    }, [card.fields.Front.value, card.fields.Back.value, katexConfig]);
+
+    return <div className={`p-4 border rounded-lg rounded-xl transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <div ref={frontRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
+            {card.fields.Front.value ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} /> :
+                <FieldSkeleton />
+            }
+        </div>
         <Separator orientation="horizontal" className="my-1" />
-        <div ref={backRef} dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} />
+        <div ref={backRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
+            {card.fields.Back.value ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} /> :
+                <FieldSkeleton />
+            }
+        </div>
     </div>
 }
 
@@ -118,7 +157,8 @@ export default function DeckChat({ currentDeck }: { currentDeck: string }) {
 
         const loadCards = async () => {
             try {
-                const stream = ankiClient.streamDeckCards(currentDeck);
+                // Pass abort signal to the stream
+                const stream = ankiClient.streamDeckCards(currentDeck, 10, controller.signal);
                 for await (const batch of stream) {
                     if (!isMounted) return;
 
@@ -134,7 +174,7 @@ export default function DeckChat({ currentDeck }: { currentDeck: string }) {
             }
         };
 
-        loadCards();
+        void loadCards();
         return () => {
             isMounted = false;
             controller.abort();
