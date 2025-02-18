@@ -114,6 +114,32 @@ export class AnkiClient {
         return cards;
     }
 
+    async *streamDeckCards(deckName: string, batchSize = 10): AsyncGenerator<AnkiCard[]> {
+        const cardIds = await this.fetchCardIdsForDeck(deckName);
+        const IdsToDeckName = await this.fetchDecksToIds(cardIds);
+
+        // Initial yield with empty cards containing only IDs
+        yield cardIds.map(id => ({
+            cardId: id,
+            deckName: IdsToDeckName.get(id) ?? '',
+            fields: { Front: { value: '' }, Back: { value: '' } }
+        }));
+
+        // Process cards in batches
+        for (let i = 0; i < cardIds.length; i += batchSize) {
+            const batchIds = cardIds.slice(i, i + batchSize);
+            const cards = await this.fetchCardsInfo(batchIds);
+
+            // Update deck names and media for this batch
+            cards.forEach(card => {
+                card.deckName = IdsToDeckName.get(card.cardId) ?? '';
+            });
+            await this.replaceMediaReferencesWithDataUrls(cards);
+
+            yield cards;
+        }
+    }
+
     private async fetchDecksToIds(cardIds: number[]): Promise<Map<number, string>> {
         const decks = await this.request<Record<string, number[]>>({
             action: "getDecks",
