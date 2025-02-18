@@ -112,7 +112,7 @@ export class AnkiClient {
         return cards;
     }
 
-    async *streamDeckCards(deckName: string, batchSize = 10): AsyncGenerator<AnkiCard[]> {
+    async *streamDeckCards(deckName: string, batchSize = 10, signal?: AbortSignal): AsyncGenerator<AnkiCard[]> {
         const cardIds = await this.fetchCardIdsForDeck(deckName);
         const IdsToDeckName = await this.fetchDecksToIds(cardIds);
 
@@ -125,6 +125,9 @@ export class AnkiClient {
 
         // Process cards in batches
         for (let i = 0; i < cardIds.length; i += batchSize) {
+            // Check abort status before each batch
+            if (signal?.aborted) break;
+
             const batchIds = cardIds.slice(i, i + batchSize);
             const cards = await this.fetchCardsInfo(batchIds);
 
