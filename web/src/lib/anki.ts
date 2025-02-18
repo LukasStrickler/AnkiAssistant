@@ -30,9 +30,7 @@ export interface AnkiCard {
 export interface AnkiCardRaw {
     cardId: number;
     deckName: string;
-    fields: {
-        [key: string]: { value: string, order: number };
-    };
+    fields: Record<string, { value: string; order: number }>;
 }
 export class AnkiClient {
     private apiUrl: string;
