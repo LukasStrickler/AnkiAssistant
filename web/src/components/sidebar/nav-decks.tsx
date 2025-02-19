@@ -137,6 +137,7 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
               <SidebarMenuButton
                 onClick={() => {
                   selectDeck(deck.name);
+                  router.push(deckToPath(deck.fullName));
                 }}
                 className="flex-1 overflow-hidden whitespace-nowrap rounded-xl"
               >
@@ -204,11 +205,14 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
               side={isMobile ? "bottom" : "right"}
               align={isMobile ? "end" : "start"}
             >
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                selectDeck(deck.name);
+                router.push(deckToPath(deck.fullName));
+              }}>
                 <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>View Deck</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Share className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>Share Deck</span>
               </DropdownMenuItem>
@@ -216,7 +220,7 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
               <DropdownMenuItem>
                 <Trash2 className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>Delete Deck</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
