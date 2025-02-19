@@ -1,10 +1,6 @@
 "use client";
 
 import {
-  Folder,
-  MoreHorizontal,
-  Share,
-  Trash2,
   ChevronRight,
   ArrowRightCircle,
   ChevronsDownUp,
@@ -12,13 +8,6 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -43,7 +32,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { deckToPath } from "@/app/deck/[...slug]/page";
 
