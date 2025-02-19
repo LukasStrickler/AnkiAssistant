@@ -45,10 +45,7 @@ import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-// Convert deck full name to URL path
-function deckToPath(deckFullName: string) {
-  return `/deck/${deckFullName.split('::').map(encodeURIComponent).join('/')}`;
-}
+import { deckToPath } from "@/app/deck/[...slug]/page";
 
 
 export function NavDecks() {
