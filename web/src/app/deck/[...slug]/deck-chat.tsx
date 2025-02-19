@@ -10,7 +10,7 @@ import 'katex/dist/katex.min.css';
 import { ArrowRightCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
-
+import { deckToPath } from "./page";
 function AllDecks({ cards }: { cards: AnkiCard[] }) {
     const router = useRouter();
     const [openItems, setOpenItems] = useState<number[]>(Array.from({ length: 100 }, (_, i) => i));
@@ -37,10 +37,6 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
     const handleAccordionChange = (value: string[]) => {
         if (!userModified) setUserModified(true);
         setOpenItems(value.map(v => parseInt(v)));
-    };
-
-    const deckToPath = (deckFullName: string) => {
-        return `/deck/${deckFullName.split('::').map(encodeURIComponent).join('/')}`;
     };
 
     return (
