@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 // Convert deck full name to URL path
 function deckToPath(deckFullName: string) {
@@ -136,8 +136,12 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
             <HoverCardTrigger asChild>
               <SidebarMenuButton
                 onClick={() => {
-                  selectDeck(deck.name);
-                  router.push(deckToPath(deck.fullName));
+                  if (deck.children.length > 0) {
+                    toggleDeckExpansion(deck.fullName);
+                  } else {
+                    selectDeck(deck.name);
+                    router.push(deckToPath(deck.fullName));
+                  }
                 }}
                 className="flex-1 overflow-hidden whitespace-nowrap rounded-xl"
               >
@@ -189,40 +193,6 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
               </div>
             </HoverCardContent>
           </HoverCard>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuAction
-                showOnHover
-                className={deck.children.length > 0 ? "mr-8 translate-x-[-2px]" : "translate-x-[-8px]"}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </SidebarMenuAction>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-48"
-              side={isMobile ? "bottom" : "right"}
-              align={isMobile ? "end" : "start"}
-            >
-              <DropdownMenuItem onClick={() => {
-                selectDeck(deck.name);
-                router.push(deckToPath(deck.fullName));
-              }}>
-                <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>View Deck</span>
-              </DropdownMenuItem>
-              {/* <DropdownMenuItem>
-                <Share className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Share Deck</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Trash2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Delete Deck</span>
-              </DropdownMenuItem> */}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         {deck.children.length > 0 && (
