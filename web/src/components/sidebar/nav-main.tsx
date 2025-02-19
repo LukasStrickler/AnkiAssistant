@@ -1,7 +1,6 @@
 "use client"
 
 import { Plus } from "lucide-react"
-import { useState } from "react"
 
 import {
   SidebarGroup,
@@ -11,111 +10,19 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-interface Chat {
-  id: string
-  title: string
-  createdAt: Date
-  modelUsed: string
-}
-
-// Mock data initialization
-const mockChats: Chat[] = [
-  {
-    id: '1',
-    title: 'Card Review Session',
-    createdAt: new Date('2024-03-15'),
-    modelUsed: 'llama2'
-  },
-  {
-    id: '2',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '3',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '4',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '5',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '6',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '7',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '8',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '9',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '10',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '11',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '12',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-  {
-    id: '13',
-    title: 'Japanese Vocabulary',
-    createdAt: new Date('2024-03-14'),
-    modelUsed: 'mistral'
-  },
-
-
-]
+import { db } from "@/local-db"
+import { useLiveQuery } from "dexie-react-hooks"
+import { useRouter } from "next/navigation"
 
 export function NavMain() {
-  const [chats, setChats] = useState<Chat[]>(mockChats)
+  const chats = useLiveQuery(() =>
+    db.chats
+      .orderBy('createdAt')
+      .reverse()
+      .toArray()
+  ) ?? []
 
-  const createNewChat = () => {
-    const newChat: Chat = {
-      id: Date.now().toString(),
-      title: `Chat ${new Date().toLocaleDateString()}`,
-      createdAt: new Date(),
-      modelUsed: 'default'
-    }
-
-    setChats([newChat, ...chats])
-  }
+  const router = useRouter()
 
   return (
     <SidebarGroup className="flex flex-col h-full">
@@ -124,7 +31,7 @@ export function NavMain() {
         {/* Sticky New Chat button */}
         <div className="sticky top-0 z-10 pt-1 pr-2">
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={createNewChat} className="rounded-xl">
+            <SidebarMenuButton onClick={() => router.push('/chat')} className="rounded-xl">
               <Plus className="h-4 w-4" />
               <span>New Chat</span>
             </SidebarMenuButton>
@@ -135,12 +42,18 @@ export function NavMain() {
           <div className="space-y-1 pr-2">
             {chats.map((chat) => (
               <SidebarMenuItem key={chat.id}>
-                <SidebarMenuButton asChild className="rounded-xl">
-                  <a href={`/chat/${chat.id}`} className="flex justify-between items-center">
-                    <span className="truncate">{chat.title}</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {chat.createdAt.toLocaleDateString()}
-                    </span>
+                <SidebarMenuButton asChild className="rounded-xl group"
+                  onClick={() => router.push(`/chat/${chat.id}`)}
+                >
+                  <a className="flex justify-between items-center">
+                    <span className="truncate">{chat.name}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 group/date">
+                        <span className="text-xs text-muted-foreground">
+                          {chat.createdAt.toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
