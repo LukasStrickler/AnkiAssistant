@@ -1,22 +1,13 @@
 "use client";
 
 import {
-  Folder,
-  MoreHorizontal,
-  Share,
-  Trash2,
   ChevronRight,
   ArrowRightCircle,
+  ChevronsDownUp,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useEffect } from "react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -41,16 +32,12 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { useRouter } from "next/navigation";
-// Convert deck full name to URL path
-function deckToPath(deckFullName: string) {
-  return `/deck/${deckFullName.split('::').map(encodeURIComponent).join('/')}`;
-}
+import { deckToPath } from "@/app/deck/[...slug]/page";
 
 
 export function NavDecks() {
-  const { decks, refreshDecks, isLoading } = useAnkiStore();
+  const { decks, refreshDecks, isLoading, collapseAllDecks, expandAllDecks, expandedDecks } = useAnkiStore();
 
   useEffect(() => {
     void refreshDecks();
@@ -58,7 +45,34 @@ export function NavDecks() {
 
   return (
     <SidebarGroup className="flex flex-col h-full group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Decks</SidebarGroupLabel>
+      <div className="flex justify-between items-center px-2">
+        <SidebarGroupLabel>Decks</SidebarGroupLabel>
+        <div className="flex items-center gap-1 pr-1">
+          {expandedDecks.size > 0 ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={collapseAllDecks}
+              className="h-8 w-8 rounded-full"
+              title="Collapse all decks"
+            >
+              <ChevronsDownUp className="h-4 w-4" />
+              <span className="sr-only">Collapse all decks</span>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={expandAllDecks}
+              className="h-8 w-8 rounded-full"
+              title="Expand all decks"
+            >
+              <ChevronsUpDown className="h-4 w-4" />
+              <span className="sr-only">Expand all decks</span>
+            </Button>
+          )}
+        </div>
+      </div>
       <SidebarMenu className="flex-1 min-h-0">
         <ScrollArea className="h-full">
           <div className="pr-2">
@@ -82,7 +96,7 @@ export function NavDecks() {
 
 function DeckItem({ deck }: { deck: DeckTreeNode }) {
   const { isMobile } = useSidebar();
-  const { selectDeck } = useAnkiStore();
+  const { selectDeck, expandedDecks, toggleDeckExpansion } = useAnkiStore();
   const router = useRouter();
 
   const truncateDeckName = (name: string, level: number) => {
@@ -96,14 +110,23 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
   };
 
   return (
-    <Collapsible asChild>
+    <Collapsible
+      open={expandedDecks.has(deck.fullName)}
+      onOpenChange={() => toggleDeckExpansion(deck.fullName)}
+      asChild
+    >
       <SidebarMenuItem>
         <div className="flex items-center w-full min-w-fit">
           <HoverCard>
             <HoverCardTrigger asChild>
               <SidebarMenuButton
                 onClick={() => {
-                  selectDeck(deck.name);
+                  if (deck.children.length > 0) {
+                    toggleDeckExpansion(deck.fullName);
+                  } else {
+                    selectDeck(deck.name);
+                    router.push(deckToPath(deck.fullName));
+                  }
                 }}
                 className="flex-1 overflow-hidden whitespace-nowrap rounded-xl"
               >
@@ -155,37 +178,6 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
               </div>
             </HoverCardContent>
           </HoverCard>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuAction
-                showOnHover
-                className={deck.children.length > 0 ? "mr-8 translate-x-[-2px]" : "translate-x-[-8px]"}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </SidebarMenuAction>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-48"
-              side={isMobile ? "bottom" : "right"}
-              align={isMobile ? "end" : "start"}
-            >
-              <DropdownMenuItem>
-                <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>View Deck</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Share className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Share Deck</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Trash2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Delete Deck</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         {deck.children.length > 0 && (
@@ -213,6 +205,6 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
           </CollapsibleContent>
         )}
       </SidebarMenuItem>
-    </Collapsible >
+    </Collapsible>
   );
 }
