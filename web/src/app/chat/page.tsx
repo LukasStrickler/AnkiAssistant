@@ -14,7 +14,7 @@ import { Copy, Check, CheckCircle2 } from "lucide-react"
 // Add this mock data above the component
 const mockMessages: Message[] = [
     { id: 1, model: "gpt-4", content: "Hello! How can I help you today? @Deck(My Deck)", role: "assistant", timestamp: new Date("2025-02-20T17:33:00.000Z") },
-    { id: 2, content: "I'd like to learae. Natusceum. @Deck(My Deck) asdadsasdaasdasdasdasdasdasdadsasdasdasdasdasdasdasdadsasdasdasdasdasdasdadsasdasdasdasdasdasd", role: "user", timestamp: new Date("2025-02-20T17:35:00.000Z") },
+    { id: 2, content: "I'd like to learae. Natusceum. @Deck(My Deck) asdadsasdaasdasdasdasdasdasdadsasdasdasdasda @Card(123455432) sdasdasdadsasdasdasdasdasdasdadsasdasdasdasdasdasd", role: "user", timestamp: new Date("2025-02-20T17:35:00.000Z") },
     { id: 3, model: "gpt-4", content: "Great question! Let me explain.... ", role: "assistant", timestamp: new Date("2025-02-20T17:36:00.000Z") },
 ]
 
