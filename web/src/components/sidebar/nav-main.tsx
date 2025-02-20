@@ -47,13 +47,6 @@ export function NavMain() {
                 >
                   <a className="flex justify-between items-center">
                     <span className="truncate">{chat.name}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 group/date">
-                        <span className="text-xs text-muted-foreground">
-                          {chat.createdAt.toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
