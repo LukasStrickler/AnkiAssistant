@@ -38,7 +38,9 @@ export function NavConnection({
     setContentModel,
     setAvailableModels,
     setOllamaStatus,
-    setAnkiStatus
+    setAnkiStatus,
+    chatModel,
+    setChatModel
   } = useModelStore()
 
   const prevStatuses = React.useRef({
@@ -104,11 +106,14 @@ export function NavConnection({
         if (!contentModel) {
           setContentModel(models[0] ?? "No models available")
         }
+        if (!chatModel) {
+          setChatModel(models[0] ?? "No models available")
+        }
       }
     }
 
     void loadModels()
-  }, [ollamaStatus, overviewModel, contentModel, setOverviewModel, setContentModel, setAvailableModels])
+  }, [ollamaStatus, overviewModel, contentModel, chatModel, setOverviewModel, setContentModel, setChatModel, setAvailableModels])
 
 
   return (
@@ -137,6 +142,30 @@ export function NavConnection({
           </CardHeader>
           <CardContent className="p-2">
             <SidebarMenu>
+              <SidebarMenuItem className="group relative">
+                <div className="flex w-full items-center gap-2 rounded-md p-1">
+                  <span>Chat</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="ml-auto flex items-center gap-1">
+                      <span className="truncate text-muted-foreground">
+                        {chatModel ?? 'Select model'}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48">
+                      {availableModels.map((model) => (
+                        <DropdownMenuItem
+                          key={model}
+                          onSelect={() => setChatModel(model)}
+                        >
+                          {model}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </SidebarMenuItem>
+
               <SidebarMenuItem className="group relative">
                 <div className="flex w-full items-center gap-2 rounded-md p-1">
                   <span>Overview</span>
