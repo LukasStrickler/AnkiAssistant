@@ -4,12 +4,12 @@ interface Chat {
     id: number;
     name: string;
     createdAt: Date;
-    updatedAt: Date;
 }
 
 interface Message {
     id: number;
     content: string;
+    role: 'user' | 'assistant';
     createdAt: Date;
     modelUsed: string;
     chatId: number;
@@ -26,10 +26,10 @@ const db = new Dexie('ChatsDatabase') as Dexie & {
     >;
 };
 
-db.version(1).stores({
-    chats: '++id, name, createdAt, updatedAt',
-    messages: '++id, content, createdAt, modelUsed, chatId'
+db.version(4).stores({
+    chats: '++id, name, createdAt',
+    messages: '++id, content, role, createdAt, modelUsed, chatId'
 });
 
-export type { Chat };
+export type { Chat, Message };
 export { db }
