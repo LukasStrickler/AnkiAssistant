@@ -42,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0">
+      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
         <div className="flex-1 min-h-0">
           <NavMain />
         </div>

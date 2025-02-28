@@ -74,8 +74,8 @@ export function NavDecks() {
         </div>
       </div>
       <SidebarMenu className="flex-1 min-h-0">
-        <ScrollArea className="h-full">
-          <div className="pr-2">
+        <ScrollArea className="h-full scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          <div className="pr-2" style={{ msOverflowStyle: 'none' }}>
             {isLoading ? (
               Array(4).fill(0).map((_, i) => (
                 <div key={i} className="p-[4px]">
