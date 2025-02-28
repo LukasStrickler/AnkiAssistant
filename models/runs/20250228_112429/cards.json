@@ -1,0 +1,74 @@
+[
+    {
+        "front": "What is Economics?",
+        "back": "Economics is the study of how individuals, businesses, and governments allocate resources. It involves understanding the production, distribution, and consumption of goods and services.",
+        "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+        "card_type": "Definition"
+    },
+    {
+        "front": "Microeconomics vs. Macroeconomics",
+        "back": "**Microeconomics** focuses on individual decision-making, such as supply and demand of goods and services. It examines the behavior of individual consumers and firms in making decisions regarding consumption, production, and resource allocation.\n\n**Macroeconomics**, on the other hand, deals with large-scale economic factors like Gross Domestic Product (GDP), unemployment rates, and inflation. It analyzes the overall performance of an economy and its institutions.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Comparison",
+        "card_type": "Comparison"
+    },
+    {
+        "front": "What is the Law of Demand?",
+        "back": "The Law of Demand states that as price decreases, demand for a good or service increases. This relationship between price and quantity demanded is fundamental to understanding supply and demand in economics.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "front": "What is the Law of Supply?",
+        "back": "The Law of Supply states that as the price of a good or service increases, the quantity supplied also increases. This relationship reflects the incentive for producers to supply more when prices rise, as it becomes profitable to do so.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "front": "What is Opportunity Cost?",
+        "back": "Opportunity cost refers to the benefit or value that you give up when choosing one option over another. For example, if you decide to study instead of working part-time, the opportunity cost is the income you could have earned from the part-time job.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "front": "What is Capitalism?",
+        "back": "Capitalism is a market-driven economy where individuals own and operate businesses.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Socialism?",
+        "back": "Socialism refers to an economic system where the government regulates resources and production. This means that the state controls key industries, such as energy, transportation, and healthcare.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is a Mixed Economy?",
+        "back": "A mixed economy is an economic system that combines elements of both capitalism and socialism. In this system, the government regulates some industries while allowing private businesses to operate in others.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is GDP?",
+        "back": "GDP (Gross Domestic Product) measures the total value of goods and services produced within a country.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Inflation?",
+        "back": "Inflation refers to an increase in prices over time, which reduces purchasing power. It's a key concept in economics.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Unemployment Rate?",
+        "back": "The unemployment rate refers to the percentage of jobless individuals actively seeking work in the economy.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What are the three main types of government policies?",
+        "back": "Government policies can be broadly categorized into three main areas:\n1. **Regulating markets**: This includes setting rules and standards for businesses, protecting consumers, and ensuring fair competition.\n2. **Fiscal policies (taxation and spending)**: Fiscal policies involve the use of government revenue (taxes) and expenditure to influence the economy. Taxation can be used to raise revenue or to control inflation, while spending can stimulate economic growth or address social issues.\n3. **Monetary policies (interest rates and money supply)**: Monetary policies are used by central banks to control the money supply and interest rates in an economy. This can impact inflation, employment, and investment levels.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Enumeration",
+        "card_type": "Enumeration"
+    }
+]

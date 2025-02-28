@@ -5,7 +5,7 @@ import os
 import datetime
 
 outlineModel = "deepseek-r1:7b"
-cardModel = "tinyllama:latest"
+cardModel = "mistral:latest"
 
 # Load lecture notes from a markdown file
 def load_notes(file_path="models/mdFiles/basicsOfEconomics.md"):
@@ -65,8 +65,8 @@ def generate_outlines(existing_decks):
 You are tasked with creating outlines for flashcards based on the lecture notes provided. Each outline should contain:
 -   **Concept**: The main idea of the card.
 -   **Key Points**: A summary of what the card should explain.
--   **Deck**: The deck the card should belong to. Use existing decks if possible, otherwise create a new one.
-    Existing decks are: {', '.join(existing_decks) or "None"}
+-   **Deck**: The deck the card should belong to. Use existing decks if possible, otherwise create a new one with a fitting Name.
+    Existing decks are: {', '.join(existing_decks) or 'None'}.
 
 Follow these rules when creating the outlines:
 
@@ -123,19 +123,23 @@ def generate_cards_from_outlines(outlines):
 
         prompt = f"""
 ### Task:
-Generate a flashcard based on the following outline. Follow the formatting rules and language guidelines.
+Generate a ONLY ONE flashcard based on the following outline. STRICTLY adhere to the formatting rules, language guidelines, and the example provided.
 
 **Concept**: {concept}
 **Key Points**: {key_points}
 **Deck**: {deck}
 
 ### Output Format:
-Return a JSON object with:
--   "front": A question or term related to the concept.
--   "back": A detailed explanation using markdown formatting.
--   "deck": The deck the card should belong to.
+Return a JSON object with the following structure.  FAILURE TO FOLLOW THIS FORMAT EXACTLY WILL RESULT IN AN ERROR.
+
+-   The entire output MUST be a valid JSON object.
+-   The JSON object MUST contain the keys "front", "back", and "deck".
+    -   "front": A question or term related to the concept.  This should be concise.
+    -   "back": A detailed explanation of the "front" using markdown formatting.  Use markdown for emphasis (bold, italics), lists, and code snippets where appropriate.
+    -   "deck": The deck the card should belong to.  This MUST match the provided deck exactly.
 
 Example:
+```json
 {{
     "front": "What is data science?",
     "back": "Data science is the study of extracting insights from data using statistics, algorithms, and machine learning.",
@@ -150,12 +154,15 @@ Now, generate the card:
 """
         card_json = ""
         stream = ollama.chat(
-            model="deepseek-r1:1.5b",
+            model=cardModel,
             messages=[{"role": "user", "content": prompt}],
             stream=True,
         )
         for response in stream:
             card_json += response["message"]["content"]
+
+        print(f"Card JSON for concept '{concept}': {card_json}")
+        print("-------------------------")
 
         # Extract JSON object using regex
         json_match = re.search(r"{\s*\"front\".*?}", card_json, re.DOTALL)

@@ -1,0 +1,74 @@
+[
+    {
+        "concept": "Introduction to Economics",
+        "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
+        "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Micro vs. Macro Economics",
+        "key_points": "Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Comparison",
+        "card_type": "Comparison"
+    },
+    {
+        "concept": "Law of Demand",
+        "key_points": "As price decreases, demand increases.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "concept": "Law of Supply",
+        "key_points": "As price increases, supply increases.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "concept": "Opportunity Cost",
+        "key_points": "The cost of choosing one option over another; example: studying instead of working part-time.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
+        "card_type": "Explanation"
+    },
+    {
+        "concept": "Capitalism",
+        "key_points": "A market-driven economy where individuals own and operate businesses.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Socialism",
+        "key_points": "An economy regulated by the government to control resources and production.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Mixed Economy",
+        "key_points": "A combination of both capitalism and socialism.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "GDP Indicator",
+        "key_points": "Measures the total value of goods and services produced within a country.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Inflation",
+        "key_points": "An increase in prices over time, reducing purchasing power.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Unemployment Rate",
+        "key_points": "The percentage of jobless individuals actively seeking work in the economy.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Definition",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Government Policies",
+        "key_points": "1. Regulating markets; 2. Fiscal policies (taxation, spending); 3. Monetary policies (interest rates, money supply).",
+        "deck": "Uni::Sem 5::Economics::Basics::Economics::Enumeration",
+        "card_type": "Enumeration"
+    }
+]
