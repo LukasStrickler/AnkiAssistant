@@ -3,16 +3,15 @@
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, Suspense } from "react"
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"
 import { useToast } from "@/hooks/use-toast"
-import { Copy, Check, CheckCircle2 } from "lucide-react"
+import { Copy, Check } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { redirect } from "next/navigation"
-import { db, Message } from "@/local-db"
+import { db } from "@/local-db"
+import type { Message } from "@/local-db"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useModelStore } from "@/stores/model-store"
 import { ollamaClient } from "@/lib/ollama"
@@ -40,26 +39,26 @@ export const Deck = ({ deckName }: { deckName: string }) => {
 }
 
 export const MessageContent = ({ message }: { message: string }) => {
-    const parts = message.split(/(@Card\(\d+\)|@Deck\([^)]+\))/);
+    const parts = message.split(/(@Card\(\d+\)|@Deck\([^\)]+\))/);
 
     return (
         <span className="whitespace-normal break-words">
             {parts.map((part, index) => {
-                const cardMatch = part.match(/@Card\((\d+)\)/);
-                const deckMatch = part.match(/@Deck\(([^)]+)\)/);
+                const cardMatch = /@Card\((\d+)\)/.exec(part);
+                const deckMatch = /@Deck\(([^)]+)\)/.exec(part);
 
                 if (cardMatch) {
                     return <Card key={index} cardId={cardMatch[1]!} />;
                 }
+
                 if (deckMatch) {
                     return <Deck key={index} deckName={deckMatch[1]!} />;
                 }
                 return part;
             })}
         </span>
-    )
+    );
 }
-
 
 export const UserMessage = ({ message }: { message: Message }) => {
     return (
@@ -85,7 +84,7 @@ export const UserMessage = ({ message }: { message: Message }) => {
 export const AssistantMessage = ({ message }: { message: Message }) => {
     const { toast } = useToast();
     const handleCopy = () => {
-        navigator.clipboard.writeText(message.content);
+        void navigator.clipboard.writeText(message.content);
         toast({
             variant: "default",
             description: (
@@ -169,28 +168,24 @@ function ChatContent() {
             return;
         }
 
-        // Check if the chat exists
-        db.chats.get(Number(chatId))
-            .then((chat) => {
+        const checkChat = async () => {
+            try {
+                const chat = await db.chats.get(Number(chatId));
                 if (!chat) {
                     router.push("/chat");
                 }
-            })
-            .catch((error) => {
-                console.error("Error fetching chat:", error);
+            } catch {
                 router.push("/chat");
-            });
+            }
+        };
+        void checkChat();
     }, [chatId, router]);
 
-    if (!chatId) {
-        return null; // Let Suspense boundary handle this
-    }
-
-    // use LiveQuery to get the messages
-
-    const messages = useLiveQuery(() =>
-        db.messages.where('chatId').equals(Number(chatId)).sortBy('createdAt')
-    );
+    const messages = (useLiveQuery<Message[]>(() => {
+        return chatId
+            ? (db.messages.where('chatId').equals(Number(chatId)).sortBy('createdAt') as Promise<Message[]>)
+            : Promise.resolve([]) as Promise<Message[]>;
+    }, [chatId]) ?? []);
 
     const handleSendMessage = async () => {
         if (!inputText.trim() || isSubmitting || !chatId) return;
@@ -212,7 +207,7 @@ function ChatContent() {
             const model = useModelStore.getState().chatModel;
             if (model) {
                 // Create initial assistant message
-                const assistantMessage = await db.messages.add({
+                const assistantMessageId = await db.messages.add({
                     content: '',
                     role: 'assistant',
                     createdAt: new Date(),
@@ -220,26 +215,27 @@ function ChatContent() {
                     chatId: Number(chatId),
                 });
 
-                // Start streaming
-                setTimeout(async () => {
-                    let content = '';
-                    await ollamaClient.streamChatCompletion(
-                        [{ role: 'user', content: inputText }],
-                        model,
-                        {},
-                        async (delta) => {
-                            if (delta.content) {
-                                content += delta.content;
-                                await db.messages.update(assistantMessage, { content });
+                setTimeout(() => {
+                    void (async () => {
+                        let content = '';
+                        await ollamaClient.streamChatCompletion(
+                            [{ role: 'user', content: inputText }],
+                            model,
+                            {},
+                            (delta) => {
+                                if (delta.content) {
+                                    content += delta.content;
+                                    void db.messages.update(assistantMessageId, { content });
+                                }
                             }
-                        }
-                    );
+                        );
+                    })();
                 }, 0);
             }
 
             setInputText("");
-        } catch (error) {
-            console.error("Failed to send message:", error);
+        } catch {
+            void Promise.resolve();
         } finally {
             setIsSubmitting(false);
         }
@@ -252,7 +248,7 @@ function ChatContent() {
                 <ScrollArea className="flex-1 pr-1">
                     <div className="pr-4">
                         <div className="max-w-3xl mx-auto p-4 space-y-6">
-                            {messages?.map((message) => (
+                            {messages.map((message) => (
                                 message.role === 'user' ? (
                                     <UserMessage key={message.id} message={message} />
                                 ) : (
@@ -275,12 +271,12 @@ function ChatContent() {
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
-                                    handleSendMessage();
+                                    void handleSendMessage();
                                 }
                             }}
                         />
                         <Button
-                            onClick={handleSendMessage}
+                            onClick={() => void handleSendMessage()}
                             disabled={isSubmitting || !inputText.trim()}
                         >
                             {isSubmitting ? "Sending..." : "Send"}
