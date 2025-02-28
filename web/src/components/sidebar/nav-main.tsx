@@ -31,7 +31,7 @@ export function NavMain() {
         {/* Sticky New Chat button */}
         <div className="sticky top-0 z-10 pt-1 pr-2">
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => router.push('/chat')} className="rounded-xl">
+            <SidebarMenuButton onClick={() => router.push('/chat')} className="rounded-xl cursor-pointer">
               <Plus className="h-4 w-4" />
               <span>New Chat</span>
             </SidebarMenuButton>
@@ -39,10 +39,10 @@ export function NavMain() {
         </div>
 
         <ScrollArea className="h-full">
-          <div className="space-y-1 pr-2">
+          <div className="space-y-0 pr-2">
             {chats.map((chat) => (
               <SidebarMenuItem key={chat.id}>
-                <SidebarMenuButton asChild className="rounded-xl group"
+                <SidebarMenuButton asChild className="rounded-xl group cursor-pointer"
                   onClick={() => router.push(`/chat/${chat.id}`)}
                 >
                   <a className="flex justify-between items-center">
