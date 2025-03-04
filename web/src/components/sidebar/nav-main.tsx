@@ -46,7 +46,7 @@ export function NavMain() {
                   onClick={() => router.push(`/chat/${chat.id}`)}
                 >
                   <a className="flex justify-between items-center">
-                    <span className="truncate">{chat.name}</span>
+                    <span className="truncate">{chat.name.length > 40 ? chat.name.substring(0, 40) + "..." : chat.name}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>

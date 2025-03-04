@@ -70,6 +70,7 @@ export function NavConnection({
     localStorage.setItem('sidebarOpen', menuOpen.toString());
   }, [menuOpen]);
 
+  // eslint-disable-next-line
   useEffect(() => {
     const fetchStatus = async () => {
       const newAnkiStatus = await ankiClient.getConnectionStatus()
@@ -113,7 +114,9 @@ export function NavConnection({
     }, (ollamaStatus === 'disconnected' || ankiStatus === 'disconnected') ? 1000 : 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  },
+    // eslint-disable-next-line
+    [])
 
 
   useEffect(() => {

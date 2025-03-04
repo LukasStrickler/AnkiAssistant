@@ -15,7 +15,6 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { useAnkiStore } from "@/stores/anki-store";
 import {
@@ -95,7 +94,6 @@ export function NavDecks() {
 }
 
 function DeckItem({ deck }: { deck: DeckTreeNode }) {
-  const { isMobile } = useSidebar();
   const { selectDeck, expandedDecks, toggleDeckExpansion } = useAnkiStore();
   const router = useRouter();
 

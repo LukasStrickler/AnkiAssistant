@@ -1,7 +1,7 @@
 import { ankiClient, type DeckTreeNode } from '@/lib/anki'
 import { logger } from '@/lib/logger'
 import { create } from 'zustand'
-import { persist, type PersistOptions, type StorageValue } from 'zustand/middleware'
+import { persist, type StorageValue } from 'zustand/middleware'
 
 interface AnkiState {
     decks: DeckTreeNode[]
@@ -96,7 +96,7 @@ export const useAnkiStore = create<AnkiState>()(
                 },
                 removeItem: (name) => localStorage.removeItem(name)
             },
-            onRehydrateStorage: (state) => {
+            onRehydrateStorage: () => {
                 return (persistedState) => {
                     if (persistedState) {
                         persistedState.expandedDecks = new Set(persistedState.expandedDecks);

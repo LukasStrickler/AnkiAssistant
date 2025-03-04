@@ -2,7 +2,7 @@
 
 import { type AnkiCard, ankiClient } from "@/lib/anki";
 import { Separator } from "@/components/ui/separator";
-import { useState, useEffect, useMemo, useRef, useDeferredValue } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -28,11 +28,14 @@ function AllDecks({ cards }: { cards: AnkiCard[] }) {
     }, [cards]);
 
     // Initialize open items with deck names on first load
+    // eslint-disable-next-line
     useEffect(() => {
         if (deckNames.length > 0 && openItems.length === 0) {
             setOpenItems(deckNames.map(name => deckNames.indexOf(name)));
         }
-    }, [deckNames]); // Only run when deckNames changes
+    },
+    // eslint-disable-next-line
+    [deckNames]); // Only run when deckNames changes
 
     const handleAccordionChange = (value: string[]) => {
         if (!userModified) setUserModified(true);
@@ -89,6 +92,7 @@ function CardContent({ card }: { card: AnkiCard }) {
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Add constant for shared render config
+    // eslint-disable-next-line
     const katexConfig = {
         delimiters: [
             { left: "\\(", right: "\\)", display: false },
