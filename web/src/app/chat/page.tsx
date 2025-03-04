@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { db } from "@/local-db"
-import { useModelStore } from "@/stores/model-store"
-import { ollamaClient } from "@/lib/ollama"
 import { MessageSquarePlus, Eye } from "lucide-react"
+import { logger } from "@/lib/logger"
+import { EnhancedChatInput } from "./[...slug]/components/EnhancedChatInput"
 
 const EmptyState = () => (
     <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-4">
@@ -43,59 +43,50 @@ export default function ChatPage() {
     const handleSendMessage = async () => {
         if (!inputText.trim() || isSubmitting) return;
 
+        logger.log(`[${new Date().toISOString()}] Starting handleSendMessage`);
         setIsSubmitting(true);
 
         try {
+            logger.log(`[${new Date().toISOString()}] Creating chat in IndexedDB`);
             const timestamp = new Date();
+            const startTime = performance.now();
+
             const chatId = await db.chats.add({
-                name: "Generating Chat Name ...",
+                name: "Generating name...",
                 createdAt: timestamp,
             });
 
-            await db.messages.add({
-                content: inputText,
+            logger.log(`[${new Date().toISOString()}] Chat created in ${performance.now() - startTime}ms, chatId: ${chatId}`);
+
+            // Capture message content before clearing input
+            const messageContent = inputText;
+            logger.log(`[${new Date().toISOString()}] Message content captured: ${messageContent.length} characters`);
+
+            logger.log(`[${new Date().toISOString()}] Adding message to IndexedDB`);
+            const messageStartTime = performance.now();
+
+            const messageId = await db.messages.add({
+                content: messageContent,
                 role: 'user',
                 createdAt: timestamp,
                 modelUsed: "",
                 chatId,
             });
 
-            void generateChatName(inputText).then(async (name) => {
-                await db.chats.update(chatId, { name });
-            });
+            logger.log(`[${new Date().toISOString()}] Message added in ${performance.now() - messageStartTime}ms, messageId: ${messageId}`);
 
-            const model = useModelStore.getState().chatModel;
-            if (model) {
-                const assistantMessage = await db.messages.add({
-                    content: '',
-                    role: 'assistant',
-                    createdAt: new Date(),
-                    modelUsed: model,
-                    chatId,
-                });
+            logger.log(`[${new Date().toISOString()}] Starting navigation to /chat/${chatId}`);
+            const navigationStartTime = performance.now();
 
-                setTimeout(() => {
-                    void (async () => {
-                        let content = '';
-                        await ollamaClient.streamChatCompletion(
-                            [{ role: 'user', content: inputText }],
-                            model,
-                            {},
-                            (delta) => {
-                                if (delta.content) {
-                                    content += delta.content;
-                                    void db.messages.update(assistantMessage, { content });
-                                }
-                            }
-                        );
-                    })();
-                }, 0);
-            }
+            // Immediately redirect to the new chat page with starting inference parameter
+            router.push(`/chat/${chatId}?startInference=true`);
 
-            void router.push(`/chat/${chatId}`);
-        } catch {
-            void Promise.resolve();
-        } finally {
+            logger.log(`[${new Date().toISOString()}] Navigation initiated in ${performance.now() - navigationStartTime}ms`);
+            logger.log(`[${new Date().toISOString()}] Total operation time: ${performance.now() - startTime}ms`);
+
+            setIsSubmitting(false);
+        } catch (error) {
+            logger.error(`[${new Date().toISOString()}] Error in handleSendMessage:`, error);
             setIsSubmitting(false);
         }
     };
@@ -110,26 +101,14 @@ export default function ChatPage() {
                     <ScrollBar orientation="vertical" />
                 </ScrollArea>
 
-                <div className="pt-4 border-t">
-                    <div className="max-w-3xl mx-auto flex gap-2">
-                        <Input
-                            placeholder="Type your message..."
-                            className="flex-1"
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    void handleSendMessage();
-                                }
-                            }}
+                <div className="pt-4">
+                    <div className="max-w-3xl mx-auto">
+                        <EnhancedChatInput
+                            inputText={inputText}
+                            setInputText={setInputText}
+                            isSubmitting={isSubmitting}
+                            onSendMessage={handleSendMessage}
                         />
-                        <Button
-                            onClick={() => void handleSendMessage()}
-                            disabled={isSubmitting || !inputText.trim()}
-                        >
-                            {isSubmitting ? "Creating..." : "Send"}
-                        </Button>
                     </div>
                 </div>
             </div>
@@ -146,9 +125,4 @@ export default function ChatPage() {
             </div>
         </div>
     );
-}
-
-async function generateChatName(_content: string): Promise<string> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return "GENERATED NAME";
 }
