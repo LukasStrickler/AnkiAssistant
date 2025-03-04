@@ -104,8 +104,6 @@ const useAIInference = (chatId: string | null) => {
             const model = useModelStore.getState().chatModel;
             if (!model) return;
 
-            console.log(userMessage);
-            // Create a prompt to generate a short chat name
             const namePrompt = [
                 {
                     role: 'system' as const,

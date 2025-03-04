@@ -18,6 +18,12 @@ export interface DeckTreeNode {
     cardCount: number;
 }
 
+export enum AnkiCardStatus {
+    Anki = 'anki',
+    Generating = 'generating',
+    Generated = 'generated',
+}
+
 export interface AnkiCard {
     cardId: number;
     deckName: string;
@@ -25,6 +31,8 @@ export interface AnkiCard {
         Front: { value: string };
         Back: { value: string };
     };
+    tags: string[];
+    status: AnkiCardStatus;
 }
 
 export interface AnkiCardRaw {
@@ -120,7 +128,9 @@ export class AnkiClient {
         yield cardIds.map(id => ({
             cardId: id,
             deckName: IdsToDeckName.get(id) ?? '',
-            fields: { Front: { value: '' }, Back: { value: '' } }
+            fields: { Front: { value: '' }, Back: { value: '' } },
+            tags: [],
+            status: AnkiCardStatus.Anki
         }));
 
         // Process cards in batches
@@ -190,7 +200,9 @@ export class AnkiClient {
                 fields: {
                     Front: { value: frontField.value },
                     Back: { value: backField.value }
-                }
+                },
+                tags: [],
+                status: AnkiCardStatus.Anki
             });
         }
         return Array.from(cardMap.values());

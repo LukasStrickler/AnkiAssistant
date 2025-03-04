@@ -33,7 +33,7 @@ import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { deckToPath } from "@/app/deck/[...slug]/page";
-
+import { CreateDeckDialog } from "@/components/deck-creation/create-deck-dialog";
 
 export function NavDecks() {
   const { decks, refreshDecks, isLoading, collapseAllDecks, expandAllDecks, expandedDecks } = useAnkiStore();
@@ -42,11 +42,16 @@ export function NavDecks() {
     void refreshDecks();
   }, [refreshDecks]);
 
+  const handleCreateDeck = (deckName: string) => {
+    void refreshDecks();
+  };
+
   return (
     <SidebarGroup className="flex flex-col h-full group-data-[collapsible=icon]:hidden">
       <div className="flex justify-between items-center px-2">
         <SidebarGroupLabel>Decks</SidebarGroupLabel>
         <div className="flex items-center gap-1 pr-1">
+          <CreateDeckDialog onCreateDeck={handleCreateDeck} />
           {expandedDecks.size > 0 ? (
             <Button
               variant="ghost"
