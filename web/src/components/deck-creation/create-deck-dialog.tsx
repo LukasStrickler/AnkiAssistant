@@ -147,7 +147,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     };
 
     const handleClose = () => {
-        resetState();
+        void resetState();
     };
 
     const handleEditCard = (cardId: string) => {
