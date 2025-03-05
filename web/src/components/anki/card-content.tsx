@@ -4,14 +4,6 @@ import renderMathInElement from 'katex/contrib/auto-render';
 import 'katex/dist/katex.min.css';
 import { type AnkiCard } from "@/lib/anki";
 
-// Add constant for shared render config
-const katexConfig = {
-    delimiters: [
-        { left: "\\(", right: "\\)", display: false },
-        { left: "$$", right: "$$", display: true },
-        { left: "\\[", right: "\\]", display: true }
-    ]
-};
 
 // Skeleton loader component
 const FieldSkeleton = () => (
@@ -26,6 +18,16 @@ export function CardContent({ card }: { card: AnkiCard }) {
     const frontRef = useRef<HTMLDivElement>(null);
     const backRef = useRef<HTMLDivElement>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+
+    // Add constant for shared render config
+    // eslint-disable-next-line
+    const katexConfig = {
+        delimiters: [
+            { left: "\\(", right: "\\)", display: false },
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true }
+        ]
+    };
 
     // Add fade-in transition when content loads
     useEffect(() => {
@@ -46,23 +48,21 @@ export function CardContent({ card }: { card: AnkiCard }) {
             if (front) front.querySelectorAll('.katex').forEach(el => el.remove());
             if (back) back.querySelectorAll('.katex').forEach(el => el.remove());
         };
-    }, [card.fields.Front.value, card.fields.Back.value]);
+    }, [card.fields.Front.value, card.fields.Back.value, katexConfig]);
 
-    return (
-        <div className={`p-4 border rounded-lg rounded-xl transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-            <div ref={frontRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
-                {card.fields.Front.value ?
-                    <div dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} /> :
-                    <FieldSkeleton />
-                }
-            </div>
-            <Separator orientation="horizontal" className="my-1" />
-            <div ref={backRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
-                {card.fields.Back.value ?
-                    <div dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} /> :
-                    <FieldSkeleton />
-                }
-            </div>
+    return <div className={`p-4 border rounded-lg rounded-xl transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <div ref={frontRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
+            {card.fields.Front.value ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} /> :
+                <FieldSkeleton />
+            }
         </div>
-    );
-} 
+        <Separator orientation="horizontal" className="my-1" />
+        <div ref={backRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
+            {card.fields.Back.value ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} /> :
+                <FieldSkeleton />
+            }
+        </div>
+    </div>
+}
