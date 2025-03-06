@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/popover";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { useNoteTypeStore, type NoteTypeState } from "@/stores/note-type-store";
+import { useNoteVariantStore, type NoteVariantState } from "@/stores/note-variant-store";
 
-interface NoteTypeSelectorProps {
+interface NoteVariantSelectorProps {
     value: string[];
     onChange: (value: string[]) => void;
 }
@@ -56,27 +56,27 @@ const ScrollableContent = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-export const NoteTypeSelector = ({ value, onChange }: NoteTypeSelectorProps) => {
-    const noteTypes = useNoteTypeStore((state: NoteTypeState) => state.noteTypes);
+export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProps) => {
+    const noteVariants = useNoteVariantStore((state: NoteVariantState) => state.variants);
     const [open, setOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const { toast } = useToast();
 
-    const filteredTypes = noteTypes.filter((type) =>
-        type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        type.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredVariants = noteVariants.filter((variant) =>
+        variant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        variant.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const allSelected = value.length === noteTypes.length;
+    const allSelected = value.length === noteVariants.length;
     const triggerText = allSelected
         ? "All selected"
         : value.length === 0
             ? "Select note types..."
             : value.length === 1
-                ? `"${noteTypes.find(type => type.id === value[0])?.name}" selected`
+                ? `"${noteVariants.find(variant => variant.id === value[0])?.name}" selected`
                 : `${value.length} types selected`;
 
-    const handleSelect = (typeId: string, isSelected: boolean) => {
+    const handleSelect = (variantId: string, isSelected: boolean) => {
         if (isSelected && value.length === 1) {
             toast({
                 variant: "destructive",
@@ -86,19 +86,19 @@ export const NoteTypeSelector = ({ value, onChange }: NoteTypeSelectorProps) => 
             return;
         }
         const newValue = isSelected
-            ? value.filter(v => v !== typeId)
-            : [...value, typeId];
+            ? value.filter(v => v !== variantId)
+            : [...value, variantId];
         onChange(newValue);
     };
 
     const handleSelectAll = () => {
-        onChange(noteTypes.map(type => type.id));
+        onChange(noteVariants.map(variant => variant.id));
     };
 
     const handleBasicOnly = () => {
-        const basicType = noteTypes.find(type => type.name.toLowerCase() === "definition");
-        if (basicType) {
-            onChange([basicType.id]);
+        const basicVariant = noteVariants.find(variant => variant.name.toLowerCase() === "definition");
+        if (basicVariant) {
+            onChange([basicVariant.id]);
         }
     };
 
@@ -148,23 +148,23 @@ export const NoteTypeSelector = ({ value, onChange }: NoteTypeSelectorProps) => 
                         </div>
                     </div>
                     <ScrollableContent >
-                        {filteredTypes.length === 0 ? (
+                        {filteredVariants.length === 0 ? (
                             <div className="text-sm text-muted-foreground">
-                                No note type found.
+                                No note variant found.
                             </div>
                         ) : (
-                            filteredTypes.map((type) => {
-                                const isSelected = value.includes(type.id);
+                            filteredVariants.map((variant) => {
+                                const isSelected = value.includes(variant.id);
                                 return (
                                     <div
-                                        key={type.id}
+                                        key={variant.id}
                                         className={cn(
                                             "flex items-center gap-2 mr-1 rounded-sm px-2 py-0.5 text-sm outline-none mb-1 last:mb-0",
                                             "cursor-pointer hover:bg-accent hover:text-accent-foreground",
                                             isSelected && "bg-accent",
                                             value.length === 1 && isSelected && "cursor-not-allowed opacity-60"
                                         )}
-                                        onClick={() => handleSelect(type.id, isSelected)}
+                                        onClick={() => handleSelect(variant.id, isSelected)}
                                     >
                                         <div className="flex h-4 w-4 items-center justify-center">
                                             <Check
@@ -175,9 +175,9 @@ export const NoteTypeSelector = ({ value, onChange }: NoteTypeSelectorProps) => 
                                             />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-medium">{type.name}</span>
+                                            <span className="font-medium">{variant.name}</span>
                                             <span className="text-xs text-muted-foreground">
-                                                {type.description}
+                                                {variant.description}
                                             </span>
                                         </div>
                                     </div>

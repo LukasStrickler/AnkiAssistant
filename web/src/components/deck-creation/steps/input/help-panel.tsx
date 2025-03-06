@@ -1,3 +1,5 @@
+"use client";
+
 import {
     Accordion,
     AccordionContent,
@@ -5,7 +7,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 
-export function InputStepRight() {
+export function HelpPanel() {
     return (
         <div className="h-full flex flex-col">
             <div className="flex-grow">

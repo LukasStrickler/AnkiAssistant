@@ -9,7 +9,7 @@ export type NoteVariant = {
     promptHint: string; // Hint for the LLM about how to process this variant
 };
 
-interface NoteVariantState {
+export interface NoteVariantState {
     variants: NoteVariant[];
     selectedVariantId: string | null;
     addVariant: (variant: Omit<NoteVariant, 'id'>) => void;

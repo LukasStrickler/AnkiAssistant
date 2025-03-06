@@ -33,13 +33,22 @@ export interface AnkiCard {
     };
     tags: string[];
     status: AnkiCardStatus;
+    modelName: string;
 }
-
 export interface AnkiCardRaw {
     cardId: number;
     deckName: string;
     fields: Record<string, { value: string; order: number }>;
+    modelName: typeof AnkiCardTypes.BASIC[number];
 }
+
+export const AnkiCardTypes = {
+    BASIC: ["Basic", "Einfach"], //Translations
+    CARD_TYPE_NOT_SUPPORTED: "CARD TYPE NOT SUPPORTED"
+} as const;
+
+export type AnkiCardType = (typeof AnkiCardTypes)[keyof typeof AnkiCardTypes];
+
 export class AnkiClient {
     private apiUrl: string;
 
@@ -130,7 +139,8 @@ export class AnkiClient {
             deckName: IdsToDeckName.get(id) ?? '',
             fields: { Front: { value: '' }, Back: { value: '' } },
             tags: [],
-            status: AnkiCardStatus.Anki
+            status: AnkiCardStatus.Anki,
+            modelName: ""
         }));
 
         // Process cards in batches
@@ -184,7 +194,25 @@ export class AnkiClient {
         });
 
         const cardMap = new Map<number, AnkiCard>();
-        for (const { cardId, deckName, fields } of cards) {
+        for (const { cardId, deckName, fields, modelName } of cards) {
+            if (!AnkiCardTypes.BASIC.includes(modelName)) {
+                logger.warn(`Card ${cardId} has model ${modelName} which is not supported`, { cardId, deckName, fields, modelName });
+                cardMap.set(cardId, {
+                    cardId,
+                    deckName,
+                    fields: {
+                        Front: { value: AnkiCardTypes.CARD_TYPE_NOT_SUPPORTED },
+                        Back: {
+                            value: "Check the logs for more details, contact the developer to add support for this card type."
+                        }
+                    },
+                    tags: [],
+                    status: AnkiCardStatus.Anki,
+                    modelName: AnkiCardTypes.CARD_TYPE_NOT_SUPPORTED
+                });
+                continue;
+            }
+
             const fieldValues = Object.values(fields);
             const frontField = fieldValues.find(f => f.order === 0);
             const backField = fieldValues.find(f => f.order === 1);
@@ -202,7 +230,8 @@ export class AnkiClient {
                     Back: { value: backField.value }
                 },
                 tags: [],
-                status: AnkiCardStatus.Anki
+                status: AnkiCardStatus.Anki,
+                modelName
             });
         }
         return Array.from(cardMap.values());
