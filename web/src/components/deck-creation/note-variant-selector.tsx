@@ -12,9 +12,12 @@ import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useNoteVariantStore, type NoteVariantState } from "@/stores/note-variant-store";
 
+type SelectionMode = "single" | "multiple";
+
 interface NoteVariantSelectorProps {
     value: string[];
     onChange: (value: string[]) => void;
+    selectionMode?: SelectionMode;
 }
 
 const ScrollableContent = ({ children }: { children: React.ReactNode }) => {
@@ -56,7 +59,11 @@ const ScrollableContent = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProps) => {
+export const NoteVariantSelector = ({
+    value,
+    onChange,
+    selectionMode = "multiple"
+}: NoteVariantSelectorProps) => {
     const noteVariants = useNoteVariantStore((state: NoteVariantState) => state.variants);
     const [open, setOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -67,7 +74,7 @@ export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProp
         variant.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const allSelected = value.length === noteVariants.length;
+    const allSelected = selectionMode === "multiple" && value.length === noteVariants.length;
     const triggerText = allSelected
         ? "All selected"
         : value.length === 0
@@ -77,22 +84,31 @@ export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProp
                 : `${value.length} types selected`;
 
     const handleSelect = (variantId: string, isSelected: boolean) => {
-        if (isSelected && value.length === 1) {
-            toast({
-                variant: "destructive",
-                title: "Selection Required",
-                description: "At least one note type must be selected",
-            });
-            return;
+        if (selectionMode === "multiple") {
+            // In multiple mode, ensure at least one item remains selected
+            if (isSelected && value.length === 1) {
+                toast({
+                    variant: "destructive",
+                    title: "Selection Required",
+                    description: "At least one note type must be selected",
+                });
+                return;
+            }
+
+            const newValue = isSelected
+                ? value.filter(v => v !== variantId)
+                : [...value, variantId];
+            onChange(newValue);
+        } else {
+            // In single mode, just select the clicked item
+            onChange([variantId]);
         }
-        const newValue = isSelected
-            ? value.filter(v => v !== variantId)
-            : [...value, variantId];
-        onChange(newValue);
     };
 
     const handleSelectAll = () => {
-        onChange(noteVariants.map(variant => variant.id));
+        if (selectionMode === "multiple") {
+            onChange(noteVariants.map(variant => variant.id));
+        }
     };
 
     const handleBasicOnly = () => {
@@ -119,24 +135,29 @@ export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProp
                 </PopoverTrigger>
                 <PopoverContent className="w-[500px] p-0" align="start">
                     <div className="flex items-center justify-between gap-4 border-b p-2">
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 text-xs font-medium"
-                                onClick={handleSelectAll}
-                            >
-                                Select All
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 text-xs font-medium"
-                                onClick={handleBasicOnly}
-                            >
-                                Basic Only
-                            </Button>
-                        </div>
+                        {selectionMode === "multiple" && (
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs font-medium"
+                                    onClick={handleSelectAll}
+                                >
+                                    Select All
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs font-medium"
+                                    onClick={handleBasicOnly}
+                                >
+                                    Basic Only
+                                </Button>
+                            </div>
+                        )}
+                        {selectionMode === "single" && (
+                            <div></div> // Empty div for spacing, could add other actions specific to single mode
+                        )}
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">Search:</span>
                             <Input
@@ -162,7 +183,7 @@ export const NoteVariantSelector = ({ value, onChange }: NoteVariantSelectorProp
                                             "flex items-center gap-2 mr-1 rounded-sm px-2 py-0.5 text-sm outline-none mb-1 last:mb-0",
                                             "cursor-pointer hover:bg-accent hover:text-accent-foreground",
                                             isSelected && "bg-accent",
-                                            value.length === 1 && isSelected && "cursor-not-allowed opacity-60"
+                                            selectionMode === "multiple" && value.length === 1 && isSelected && "cursor-not-allowed opacity-60"
                                         )}
                                         onClick={() => handleSelect(variant.id, isSelected)}
                                     >

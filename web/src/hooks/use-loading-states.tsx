@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { LoadingStateConfig, LoadingStateItem } from '../components/deck-creation/steps/types';
+import type { LoadingStateConfig, LoadingStateItem } from '@/components/deck-creation/steps/types';
 
 export function useLoadingStates(initialStates: LoadingStateItem[]) {
     const [config, setConfig] = useState<LoadingStateConfig>({

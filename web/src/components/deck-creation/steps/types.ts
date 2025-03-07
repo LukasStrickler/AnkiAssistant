@@ -62,7 +62,7 @@ export interface OutlineItem {
     key_points: string;
     deck: string;
     card_type: string;
-    status: "pending" | "generating" | "completed" | "error";
+    status: "outline-review" | "pending" | "generating" | "card-review" | "fixing-error" | "error";
     error?: string;
     card?: Card;
 }

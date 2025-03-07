@@ -2,30 +2,36 @@
 
 import { Button } from "@/components/ui/button";
 import { type Card } from "../types";
-import { cn } from "@/lib/utils";
 
 interface CardEditorProps {
     card: Card;
     onEditCard: (card: Card) => void;
     onClose: () => void;
     onSaveDeck?: () => void;
+    onSwitchToOutline?: () => void;
 }
 
 export function CardEditor({
     card,
     onEditCard,
     onClose,
-    onSaveDeck
+    onSaveDeck,
+    onSwitchToOutline
 }: CardEditorProps) {
     return (
         <div className="h-full flex flex-col">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">Edit Card</h2>
-                {onSaveDeck && (
-                    <Button onClick={onSaveDeck}>
-                        Save to Anki
-                    </Button>
-                )}
+                <div className="flex gap-2">
+                    {onSwitchToOutline && (
+                        <Button
+                            variant="outline"
+                            onClick={onSwitchToOutline}
+                        >
+                            Switch to Outline Editor
+                        </Button>
+                    )}
+                </div>
             </div>
             <div className="flex-grow flex flex-col min-h-0">
                 <div className="flex-grow overflow-y-auto mb-4">
@@ -50,11 +56,11 @@ export function CardEditor({
                 </div>
                 <div className="flex gap-4">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         onClick={onClose}
                         className="flex-1"
                     >
-                        Back to Cards
+                        Close Editor
                     </Button>
                 </div>
             </div>

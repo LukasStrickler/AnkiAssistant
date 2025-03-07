@@ -8,14 +8,8 @@ import { cn } from "@/lib/utils";
 import { useRef } from "react";
 import { SystemPromptSelector } from "../../system-prompt-selector";
 import { NoteVariantSelector } from "../../note-variant-selector";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
 import { type InputStepProps } from "../types";
-
+import { logger } from "@/lib/logger";
 export function InputStep({
     topic,
     setTopic,
@@ -36,7 +30,7 @@ export function InputStep({
         e.preventDefault();
 
         const file = e.dataTransfer.files[0];
-        if (!file || !file.name.endsWith('.md')) {
+        if (!file?.name?.endsWith('.md')) {
             return;
         }
 
@@ -45,7 +39,7 @@ export function InputStep({
             const contentWithHeader = `-----\nFILE: ${file.name}\n-----\n\n${text}`;
             setTopic(contentWithHeader);
         } catch (error) {
-            console.error('Error reading file:', error);
+            logger.error('Error reading file:', error);
         }
     };
 
@@ -55,14 +49,14 @@ export function InputStep({
         for (const item of items) {
             if (item.kind === 'file') {
                 const file = item.getAsFile();
-                if (file && file.name.endsWith('.md')) {
+                if (file?.name?.endsWith('.md')) {
                     e.preventDefault();
                     try {
                         const text = await file.text();
                         const contentWithHeader = `-----\nFILE: ${file.name}\n-----\n\n${text}`;
                         setTopic(contentWithHeader);
                     } catch (error) {
-                        console.error('Error reading file:', error);
+                        logger.error('Error reading file:', error);
                     }
                     break;
                 }

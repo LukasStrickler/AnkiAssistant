@@ -1,5 +1,5 @@
-import { MultiStepLoader } from "../../multi-step-loader";
-import { LoadingStateConfig, LoadingStateItem } from "../types";
+// import { MultiStepLoader } from "../../multi-step-loader";
+import { type LoadingStateConfig } from "./types";
 
 interface LoadingState {
     text: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, X, ChevronRight, RefreshCw } from "lucide-react";
+import { Plus, X, ChevronRight } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,11 +29,11 @@ import {
     type OutlineItem,
     OutlineLoadingStates,
     CardsLoadingStates,
-    SavingLoadingStates
+    SavingLoadingStates,
+    OutlineEditor
 } from "./steps";
-import { cn } from "@/lib/utils";
 import { HelpPanel } from "./steps/input/help-panel";
-
+import { Separator } from "@/components/ui/separator";
 
 interface CreateDeckDialogProps {
     onCreateDeck: (deckName: string) => void;
@@ -46,16 +46,16 @@ const sampleOutline: OutlineItem[] = [
         "concept": "Introduction to Economics",
         "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
         "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
-        "card_type": "Definition",
-        "status": "pending"
+        "card_type": "concept-system",
+        "status": "outline-review"
     },
     {
         "id": 2,
         "concept": "Micro vs. Macro Economics",
         "key_points": "Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).",
         "deck": "Uni::Sem 5::Economics::Basics::Economics::Comparison",
-        "card_type": "Comparison",
-        "status": "pending"
+        "card_type": "concept-system",
+        "status": "outline-review"
     },
     // {
     //     "id": 3,
@@ -113,10 +113,10 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     const [currentStep, setCurrentStep] = useState<GenerationStep>(GenerationSteps.INPUT);
     const [outline, setOutline] = useState<OutlineItem[]>([]);
     const [selectedOutlineId, setSelectedOutlineId] = useState<number>();
-    const [cards, setCards] = useState<Card[]>([]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [open, setOpen] = useState(false);
     const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+    const [editingOutline, setEditingOutline] = useState<OutlineItem | null>(null);
     const { toast } = useToast();
 
     // Initialize outline loading states with our new system
@@ -149,12 +149,12 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         setPromptId(defaultPromptId);
         setSelectedNoteVariants(noteVariants.map(variant => variant.id));
         setOutline([]);
-        setCards([]);
         setSelectedCard(null);
         setCurrentStep(GenerationSteps.INPUT);
         setOpen(false);
         setSelectedOutlineId(undefined);
         setSelectedCard(null);
+        setEditingOutline(null);
 
         // Reset loading states
         outlineLoadingStates.resetStates();
@@ -172,7 +172,6 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     const handleSubmitInput = () => {
         setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
         setOutline([]);
-        setCards([]);
         handleGeneratingOutline();
     };
 
@@ -211,7 +210,6 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
 
     const handleSubmitOutline = () => {
         setCurrentStep(GenerationSteps.GENERATING_CARDS);
-        setCards([]);
         handleGeneratingCards();
     };
 
@@ -228,6 +226,11 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         // Start with GENERATE for first card
         cardsLoadingStates.setCurrentState('GENERATE');
 
+        //set all outline items to pending
+        setOutline(prevOutline =>
+            prevOutline.map(item => ({ ...item, status: "pending" }))
+        );
+
         // Sequential card generation - each completes before moving to next
         const generateCardSequentially = (index = 0) => {
             if (index >= totalCards) {
@@ -237,15 +240,6 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
 
                     setTimeout(() => {
                         cardsLoadingStates.setCurrentState('OPTIMIZE');
-
-                        // Update outline items with their cards
-                        setOutline(prevOutline =>
-                            prevOutline.map(item => ({
-                                ...item,
-                                status: "completed",
-                                card: sampleCards[item.id - 1]
-                            }))
-                        );
 
                         setTimeout(() => {
                             setCurrentStep(GenerationSteps.REVIEWING_CARDS);
@@ -263,6 +257,15 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                 total: totalCards
             });
 
+            // Set current item to generating status
+            setOutline(prevOutline =>
+                prevOutline.map(item =>
+                    item.id === currentCardNum
+                        ? { ...item, status: "generating" }
+                        : item
+                )
+            );
+
             // Simulate card generation
             setTimeout(() => {
                 // Card 2 (index 1) will fail and need fixing
@@ -271,7 +274,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                     setOutline(prevOutline =>
                         prevOutline.map(item =>
                             item.id === currentCardNum
-                                ? { ...item, status: "error", error: "Failed to generate card" }
+                                ? { ...item, status: "fixing-error", error: "Failed to generate card" }
                                 : item
                         )
                     );
@@ -298,7 +301,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                                     item.id === currentCardNum
                                         ? {
                                             ...item,
-                                            status: "completed",
+                                            status: "card-review",
                                             error: undefined,
                                             card: sampleCards[index]
                                         }
@@ -318,7 +321,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                             item.id === currentCardNum
                                 ? {
                                     ...item,
-                                    status: "completed",
+                                    status: "card-review",
                                     card: sampleCards[index]
                                 }
                                 : item
@@ -337,16 +340,21 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         generateCardSequentially();
     };
 
-    const handleOutlineItemClick = (item: OutlineItem) => {
-        setSelectedOutlineId(item.id);
-        if (item.card) {
-            setSelectedCard(item.card);
-        }
+    const handleRegenerateAllCards = () => {
+        //TOOD: implement this
+        setCurrentStep(GenerationSteps.GENERATING_CARDS);
+
+        const prevOutline = [...outline];
+        setOutline(prevOutline =>
+            prevOutline.map(item => ({ ...item, status: "pending", card: undefined }))
+        );
+
+        handleGeneratingCards();
     };
 
     const handleSaveDeck = async () => {
         setCurrentStep(GenerationSteps.SAVING_DECK);
-        const totalCards = outline.filter(item => item.status === "completed").length;
+        const totalCards = outline.filter(item => item.status === "card-review").length;
 
         // Reset saving loading states with proper initial parameters
         savingLoadingStates.resetStates([
@@ -389,17 +397,50 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         void resetState();
     };
 
+    const handleEditOutline = (outlineItem: OutlineItem) => {
+        setSelectedOutlineId(outlineItem.id);
+        setSelectedCard(null);
+        setEditingOutline(outlineItem);
+    };
+
     const handleEditCard = (card: Card) => {
+        setSelectedOutlineId(card.id);
+        setEditingOutline(null);
         setSelectedCard(card);
-        setCards(cards.map(c => c.id === card.id ? card : c));
+        setOutline(prevOutline =>
+            prevOutline.map(item =>
+                item.card?.id === card.id
+                    ? { ...item, card }
+                    : item
+            )
+        );
+    };
+
+    const handleOutlineChange = (updatedOutline: OutlineItem) => {
+        setEditingOutline(updatedOutline);
+        setOutline(prevOutline =>
+            prevOutline.map(item =>
+                item.id === updatedOutline.id
+                    ? updatedOutline
+                    : item
+            )
+        );
     };
 
     const handleRegenerateCard = (outlineItem: OutlineItem) => {
+        const prevOutline = [...outline]
+        //clear the card from the outline item
+        prevOutline.map(item =>
+            item.id === outlineItem.id
+                ? { ...item, card: undefined }
+                : item
+        );
+
         // Update the outline item status
         setOutline(prevOutline =>
             prevOutline.map(item =>
                 item.id === outlineItem.id
-                    ? { ...item, status: "generating" }
+                    ? { ...item, status: "generating", card: undefined }
                     : item
             )
         );
@@ -411,7 +452,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                     item.id === outlineItem.id
                         ? {
                             ...item,
-                            status: "completed",
+                            status: "card-review",
                             card: {
                                 ...item.card!,
                                 front: `Regenerated front for ${item.concept}`,
@@ -454,36 +495,53 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                     />
                 );
             case GenerationSteps.REVIEWING_OUTLINE:
+            case GenerationSteps.REVIEWING_CARDS:
+                if (selectedCard) {
+                    const outlineItem = outline.find(item => item.card?.id === selectedCard.id);
+                    return (
+                        <CardEditor
+                            card={selectedCard}
+                            onEditCard={handleEditCard}
+                            onClose={() => {
+                                setSelectedCard(null);
+                                setSelectedOutlineId(undefined);
+                            }}
+                            onSaveDeck={handleSaveDeck}
+                            onSwitchToOutline={outlineItem ? () => handleEditOutline(outlineItem) : undefined}
+                        />
+                    );
+                }
+                if (editingOutline) {
+                    return (
+                        <OutlineEditor
+                            outlineItem={editingOutline}
+                            onOutlineChange={handleOutlineChange}
+                            onClose={() => {
+                                setEditingOutline(null);
+                                setSelectedOutlineId(undefined);
+                            }}
+                            onSwitchToCard={editingOutline.card ? () => handleEditCard(editingOutline.card!) : undefined}
+                        />
+                    );
+                }
                 return (
                     <div className="h-full flex flex-col">
-                        <h2 className="text-2xl font-bold mb-4">Review Outline</h2>
+                        <h2 className="text-2xl font-bold mb-4">
+                            {currentStep === GenerationSteps.REVIEWING_OUTLINE ? "Review Outline" : "Review Cards"}
+                        </h2>
                         <div className="flex-grow" />
-                        <Button
-                            onClick={handleSubmitOutline}
-                            className="w-full"
-                        >
-                            Generate Cards <ChevronRight className="ml-2" />
-                        </Button>
-                    </div>
-                );
-            case GenerationSteps.REVIEWING_CARDS:
-                return selectedCard ? (
-                    <CardEditor
-                        card={selectedCard}
-                        onEditCard={handleEditCard}
-                        onClose={() => setSelectedCard(null)}
-                        onSaveDeck={handleSaveDeck}
-                    />
-                ) : (
-                    <div className="h-full flex flex-col">
-                        <h2 className="text-2xl font-bold mb-4">Review Cards</h2>
-                        <div className="flex-grow" />
-                        <Button
-                            onClick={handleSaveDeck}
-                            className="w-full"
-                        >
-                            Save to Anki <ChevronRight className="ml-2" />
-                        </Button>
+                        {!editingOutline && !selectedCard && (
+                            <Button
+                                onClick={currentStep === GenerationSteps.REVIEWING_OUTLINE ? handleSubmitOutline : handleSaveDeck}
+                                className="w-full"
+                            >
+                                {currentStep === GenerationSteps.REVIEWING_OUTLINE ? (
+                                    <>Generate Cards <ChevronRight className="ml-2" /></>
+                                ) : (
+                                    <>Save to Anki <ChevronRight className="ml-2" /></>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 );
             default:
@@ -506,7 +564,6 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                             outline={outline}
                             currentStep={currentStep}
                             selectedOutlineId={selectedOutlineId}
-                            onOutlineItemClick={handleOutlineItemClick}
                             onRegenerateOutline={
                                 currentStep === GenerationSteps.REVIEWING_OUTLINE
                                     ? handleGeneratingOutline
@@ -514,7 +571,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                             }
                             onRegenerateCards={
                                 currentStep === GenerationSteps.REVIEWING_CARDS
-                                    ? handleGeneratingCards
+                                    ? handleRegenerateAllCards
                                     : undefined
                             }
                             onRegenerateCard={
@@ -525,6 +582,11 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                             onEditCard={
                                 currentStep === GenerationSteps.REVIEWING_CARDS
                                     ? handleEditCard
+                                    : undefined
+                            }
+                            onEditOutline={
+                                (currentStep === GenerationSteps.REVIEWING_OUTLINE || currentStep === GenerationSteps.REVIEWING_CARDS)
+                                    ? handleEditOutline
                                     : undefined
                             }
                             onSaveDeck={undefined}
@@ -570,12 +632,12 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                         <X className="h-4 w-4" />
                     </Button>
 
-                    <div className="flex h-full">
+                    <div className="flex h-full overflow-hidden">
                         {/* Left Side */}
-                        <div className="flex-1 border-r p-8">
+                        <div className="flex-1 p-8">
                             {renderLeftContent()}
                         </div>
-
+                        <Separator orientation="vertical" />
                         {/* Right Side */}
                         <div className="flex-1 p-8 overflow-y-auto">
                             {renderRightContent()}
