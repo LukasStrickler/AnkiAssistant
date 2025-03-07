@@ -4,7 +4,7 @@ import re
 import os
 import datetime
 
-outlineModel = "deepseek-r1:7b"
+outlineModel = "deepseek-r1:14b"
 cardModel = "mistral:latest"
 
 def load_notes(file_path="models/mdFiles/basicsOfEconomics.md"):
@@ -24,6 +24,54 @@ def load_rules():
 5. **Strictly One Card Per Concept**: Do NOT generate more than one card per concept.
 6. **Card Type**: Each card must have a type. Examples: 'Q&A', 'Explain Yourself', 'Enumeration', 'Fill in the Blank', 'True or False', 'Comparison', 'Definition'.
 7. **Deck Naming Format**: Deck names should follow this structure: `Uni::Sem 5::Economics::Basics::Concept Name`.
+"""
+
+def load_json_example():
+    return """
+[
+    {{
+        "concept": "Introduction to Economics",
+        "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
+        "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+        "card_type": "Q&A"
+    }},
+    {{
+        "concept": "Law of Supply and Demand",
+        "key_points": "The price of a good is determined by its supply and demand in the market.",
+        "deck": "Uni::Sem 5::Economics::Basics::Law of Supply and Demand",
+        "card_type": "Explain Yourself"
+    }},
+    {{
+        "concept": "Types of Market Structures",
+        "key_points": "Markets can be classified into four structures: Perfect Competition, Monopoly, Oligopoly, and Monopolistic Competition.",
+        "deck": "Uni::Sem 5::Economics::Basics::Market Structures",
+        "card_type": "Enumeration"
+    }},
+    {{
+        "concept": "Inflation Definition",
+        "key_points": "Inflation is the rate at which the general level of prices for goods and services rises.",
+        "deck": "Uni::Sem 5::Economics::Basics::Inflation",
+        "card_type": "Definition"
+    }},
+    {{
+        "concept": "The ____ is the Powerhouse of the Cell",
+        "key_points": "Mitochondria",
+        "deck": "Uni::Sem 3::Biology::Cell Biology",
+        "card_type": "Fill in the Blank"
+    }},
+    {{
+        "concept": "A nested for loop has the runtime complexity of O(n^2)",
+        key_points: "True",
+        "deck": "Uni::Sem 2::Computer Science::Algorithms
+        "card_type": "True or False"
+    }},
+    {{
+        "concept": "Microeconomics vs. Macroeconomics",
+        "key_points": "Microeconomics focuses on individual decision-making, while Macroeconomics deals with the economy as a whole.",
+        "deck": "Uni::Sem 5::Economics::Basics::Micro vs Macro",
+        "card_type": "Comparison"
+    }}
+]
 """
 
 def load_existing_decks(file_path="models/decks.json"):
@@ -56,10 +104,8 @@ Existing decks: {', '.join(existing_decks) or 'None'}.
 {notes}
 
 ### Output Format:
-Return a JSON array:
-[
-    {{"concept": "Example Concept", "key_points": "Brief explanation.", "deck": "Uni::Sem 5::Economics::Basics::Example Concept", "card_type": "Q&A"}}
-]
+Return a JSON array like this:
+{load_json_example()}
 """
     
     outlines_json = ""
@@ -73,6 +119,10 @@ Return a JSON array:
     
     json_match = re.search(r"\[\s*{.*?}\s*\]", outlines_json, re.DOTALL)
     if json_match:
+        # i want to print the model response 
+        #print("\n\n")
+        #print("Raw output for outlines: ", outlines_json)
+        #print("\n\n")
         try:
             return json.loads(json_match.group(0))
         except json.JSONDecodeError:
@@ -99,7 +149,7 @@ Generate EXACTLY ONE flashcard. DO NOT generate more than one.
 Return a JSON object:
 {{
     "front": "Question or term",
-    "back": "Markdown explanation",
+    "back": "Answer or definition",
     "deck": "{deck}",
     "card_type": "{card_type}"
 }}
@@ -117,7 +167,7 @@ Return a JSON object:
         for response in stream:
             card_json += response["message"]["content"]
         
-        print(f"Raw output for '{concept}': {card_json}")
+        #print(f"Raw output for '{concept}': {card_json}")
         
         json_matches = re.findall(r"{\s*\"front\".*?}", card_json, re.DOTALL)
         if json_matches:

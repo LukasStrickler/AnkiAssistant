@@ -1,0 +1,62 @@
+[
+    {
+        "front": "What is Economics?",
+        "back": "Economics is the study of how individuals, businesses, and governments allocate resources.",
+        "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+        "card_type": "Q&A"
+    },
+    {
+        "front": "What is the main focus of Microeconomics?",
+        "back": "Microeconomics focuses on individual decision-making, such as consumer and firm behavior.",
+        "deck": "Uni::Sem 5::Economics::Basics::Micro vs Macro",
+        "card_type": "Comparison"
+    },
+    {
+        "front": "What is the Law of Demand?",
+        "back": "The Law of Demand states that as price increases, quantity demanded decreases, and vice versa, assuming all else equal. This means that when the cost of a good or service rises, people tend to buy less of it.",
+        "deck": "Uni::Sem 5::Economics::Basics::Supply and Demand",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is the Law of Supply?",
+        "back": "The Law of Supply states that as price increases, quantity supplied increases, and vice versa, assuming all else equal. This means that suppliers are more willing to offer their goods or services when the price is higher.",
+        "deck": "Uni::Sem 5::Economics::Basics::Supply and Demand",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is Opportunity Cost?",
+        "back": "Opportunity cost refers to the cost of the next best alternative foregone; for example, choosing to study instead of working.",
+        "deck": "Uni::Sem 5::Economics::Basics::Opportunity Cost",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What are the three main types of economic systems?",
+        "back": "1. Capitalism (private ownership) \n2. Socialism (public control) \n3. Mixed Economy (combination)",
+        "deck": "Uni::Sem 5::Economics::Basics::Economic Systems",
+        "card_type": "Enumeration"
+    },
+    {
+        "front": "What is GDP?",
+        "back": "GDP, or Gross Domestic Product, measures the total value of all goods and services produced within a country's borders in a specific time period.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economic Indicators",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Inflation?",
+        "back": "A sustained increase in the general price level of goods and services in an economy.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economic Indicators",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Unemployment?",
+        "back": "Unemployment refers to the state of not being employed, where labor is available but not utilized.",
+        "deck": "Uni::Sem 5::Economics::Basics::Economic Indicators",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What are the main roles of government in economics?",
+        "back": "Government plays three primary roles in economics: **Regulating markets** to ensure fair competition and protect consumers, **managing fiscal policies (taxes and spending)** to stabilize the economy and provide public goods and services, and **controlling monetary policy** to influence the money supply and interest rates.",
+        "deck": "Uni::Sem 5::Economics::Basics::Government Roles",
+        "card_type": "Enumeration"
+    }
+]
