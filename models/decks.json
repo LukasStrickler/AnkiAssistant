@@ -1,14 +1,15 @@
 [
-    "Uni::Sem 5::Economics::Basics::Opportunity Cost",
-    "Uni::Sem 5::Economics::Basics::Supply and Demand",
-    "Uni::Sem 5::Economics::Basics::Economic Indicators",
-    "Uni::Sem 5::Economics::Basics::Economic Systems",
-    "Uni::Sem 5::Economics::Basics::Micro vs Macro",
-    "Uni::Sem 5::Economics::Basics::Law of Supply",
-    "Uni::Sem 5::Economics::Basics::Unemployment",
-    "Uni::Sem 5::Economics::Basics::Introduction to Economics",
-    "Uni::Sem 5::Economics::Basics::Inflation",
-    "Uni::Sem 5::Economics::Basics::GDP",
-    "Uni::Sem 5::Economics::Basics::Government Roles",
-    "Uni::Sem 5::Economics::Basics::Law of Demand"
+    "Uni::Sem 5::Machine Learning Basics::Fundamentals::Training Data",
+    "Uni::Sem 5::Machine Learning Basics::Introduction",
+    "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Reinforcement Learning",
+    "Uni::Sem 5::Machine Learning Basics::Fundamentals::Testing Data",
+    "Uni::Sem 5::Machine Learning Basics::Fundamentals::Overfitting and Underfitting",
+    "Uni::Sem 5::Machine Learning Basics::Algorithms::Linear Regression",
+    "Uni::Sem 5::Machine Learning Basics::Algorithms::Decision Trees",
+    "Uni::Sem 5::Machine Learning Basics::Tools and Libraries",
+    "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Unsupervised Learning",
+    "Uni::Sem 5::Machine Learning Basics::Algorithms::Neural Networks",
+    "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Supervised Learning",
+    "Uni::Sem 5::Machine Learning Basics::Process::Steps in Machine Learning Project",
+    "Uni::Sem 5::Machine Learning Basics::Fundamentals::Features and Labels"
 ]

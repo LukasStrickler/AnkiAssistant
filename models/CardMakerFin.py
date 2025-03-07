@@ -7,7 +7,7 @@ import datetime
 outlineModel = "deepseek-r1:14b"
 cardModel = "mistral:latest"
 
-def load_notes(file_path="models/mdFiles/basicsOfEconomics.md"):
+def load_notes(file_path="models/mdFiles/introToML.md"):
     try:
         with open(file_path, "r") as file:
             return file.read()
@@ -24,6 +24,7 @@ def load_rules():
 5. **Strictly One Card Per Concept**: Do NOT generate more than one card per concept.
 6. **Card Type**: Each card must have a type. Examples: 'Q&A', 'Explain Yourself', 'Enumeration', 'Fill in the Blank', 'True or False', 'Comparison', 'Definition'.
 7. **Deck Naming Format**: Deck names should follow this structure: `Uni::Sem 5::Economics::Basics::Concept Name`.
+8. Always use a single string for all the keys in the json object
 """
 
 def load_json_example():
@@ -136,8 +137,22 @@ def generate_cards_from_outlines(outlines):
     for outline in outlines:
         concept, key_points, deck, card_type = outline["concept"], outline["key_points"], outline["deck"], outline["card_type"]
         
+        def generate_card_with_prompt(prompt):
+            card_json = ""
+            stream = ollama.chat(
+                model=cardModel,
+                messages=[{"role": "user", "content": prompt}],
+                stream=True,
+                options={"temperature": 0.2}
+            )
+            for response in stream:
+                card_json += response["message"]["content"]
+            return card_json
+        
         prompt = f"""
 ### Task:
+You are the second model in the pipeline. You receive outlines for flashcards and need to generate the flashcards themselves.
+Based on the outline provided, generate a flashcard with the concept and key points given. The heavy thinking has been done for you, so you just need to generate the card **exactly as specified**.
 Generate EXACTLY ONE flashcard. DO NOT generate more than one.
 
 **Concept**: {concept}
@@ -157,19 +172,28 @@ Return a JSON object:
 {rules}
 """
         
-        card_json = ""
-        stream = ollama.chat(
-            model=cardModel,
-            messages=[{"role": "user", "content": prompt}],
-            stream=True,
-            options={"temperature": 0.2}
-        )
-        for response in stream:
-            card_json += response["message"]["content"]
-        
-        #print(f"Raw output for '{concept}': {card_json}")
-        
+        card_json = generate_card_with_prompt(prompt)
         json_matches = re.findall(r"{\s*\"front\".*?}", card_json, re.DOTALL)
+        
+        if not json_matches:
+            print(f"Error: Could not parse JSON for '{concept}', retrying with simplified instructions.")
+            
+            simple_prompt = f"""
+### Task:
+Generate a simple flashcard based on the following details:
+
+Concept: {concept}
+Key Points: {key_points}
+Deck: {deck}
+Card Type: {card_type}
+
+Return JSON format:
+{{"front": "Question", "back": "Answer", "deck": "{deck}", "card_type": "{card_type}"}}
+"""
+            
+            card_json = generate_card_with_prompt(simple_prompt)
+            json_matches = re.findall(r"{\s*\"front\".*?}", card_json, re.DOTALL)
+        
         if json_matches:
             try:
                 first_card = json.loads(json_matches[0])
@@ -177,8 +201,11 @@ Return a JSON object:
                 first_card["card_type"] = card_type
                 full_cards.append(first_card)
             except json.JSONDecodeError:
-                print(f"Error: Could not parse JSON for concept '{concept}'.")
+                print(f"Error: Could not parse JSON for concept '{concept}' after retry.")
+    
     return full_cards
+
+
 
 if __name__ == "__main__":
     run_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
