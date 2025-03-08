@@ -17,7 +17,15 @@ export const AssistantMessage = ({ message }: { message: Message }) => {
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleCopy = () => {
-        void navigator.clipboard.writeText(message.content);
+        const content = message.content;
+        const hasThinkingTagStart = content.includes('<think>');
+        const hasThinkingTagEnd = content.includes('</think>');
+        let cleanedContent = content;
+        if (hasThinkingTagStart && hasThinkingTagEnd) {
+            cleanedContent = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        }
+
+        void navigator.clipboard.writeText(cleanedContent);
         toast({
             variant: "default",
             description: (

@@ -34,46 +34,15 @@ import {
 } from "./steps";
 import { HelpPanel } from "./steps/input/help-panel";
 import { Separator } from "@/components/ui/separator";
-
+import { preprocessInput, isValidInput } from "./lib-inferencing/outline/preprocessing";
+import { checkOutlineQuality } from "./lib-inferencing/outline/qualityCheck";
+import { optimizeOutline } from "./lib-inferencing/outline/qualityOptimize";
+import { generateOutline } from "./lib-inferencing/outline/generation";
+import { useModelStore } from "@/stores/model-store";
+import { logger } from "@/lib/logger";
 interface CreateDeckDialogProps {
     onCreateDeck: (deckName: string) => void;
 }
-
-
-const sampleOutline: OutlineItem[] = [
-    {
-        "id": 1,
-        "concept": "Introduction to Economics",
-        "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
-        "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
-        "card_type": "concept-system",
-        "status": "outline-review"
-    },
-    {
-        "id": 2,
-        "concept": "Micro vs. Macro Economics",
-        "key_points": "Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).",
-        "deck": "Uni::Sem 5::Economics::Basics::Economics::Comparison",
-        "card_type": "concept-system",
-        "status": "outline-review"
-    },
-    // {
-    //     "id": 3,
-    //     "concept": "Law of Demand",
-    //     "key_points": "As price decreases, demand increases.",
-    //     "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
-    //     "card_type": "Explanation",
-    //     "status": "pending"
-    // },
-    // {
-    //     "id": 4,
-    //     "concept": "Law of Supply",
-    //     "key_points": "As price increases, supply increases.",
-    //     "deck": "Uni::Sem 5::Economics::Basics::Economics::Explanation",
-    //     "card_type": "Explanation",
-    //     "status": "pending"
-    // },
-]
 
 const sampleCards: Card[] = [
     {
@@ -101,11 +70,12 @@ const sampleCards: Card[] = [
 
 
 export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
-    const [topic, setTopic] = useState("");
+    const [userInputContent, setUserInputContent] = useState("");
     const prompts = usePromptStore((state) => state.prompts);
     const defaultPromptId = prompts[0]?.id ?? "";
     const [promptId, setPromptId] = useState<string>(defaultPromptId);
-    const selectPrompt = usePromptStore((state) => state.selectPrompt);
+    // const selectPrompt = usePromptStore((state) => state.selectPrompt);
+
     const noteVariants = useNoteVariantStore((state) => state.variants);
     const [selectedNoteVariants, setSelectedNoteVariants] = useState<string[]>(() =>
         noteVariants.map((type) => type.id)
@@ -121,31 +91,37 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
 
     // Initialize outline loading states with our new system
     const outlineLoadingStates = useLoadingStates([
-        { id: 'ANALYZE', text: OutlineLoadingStates.ANALYZE },
-        { id: 'GENERATE', text: OutlineLoadingStates.GENERATE },
-        { id: 'CHECK', text: OutlineLoadingStates.CHECK },
-        { id: 'OPTIMIZE', text: OutlineLoadingStates.OPTIMIZE }
+        // is valid input
+        { id: 'ANALYZE', text: OutlineLoadingStates.ANALYZE }, // preprocess input
+        { id: 'GENERATE', text: OutlineLoadingStates.GENERATE }, // generate outline
+        { id: 'CHECK', text: OutlineLoadingStates.CHECK }, // check outline
+        { id: 'OPTIMIZE', text: OutlineLoadingStates.OPTIMIZE } // optimize outline (optional)
     ]);
 
     // Initialize cards loading states with our new system
     const cardsLoadingStates = useLoadingStates([
-        { id: 'GENERATE', text: CardsLoadingStates.GENERATE, replacementParams: { current: 1, total: 0 } },
-        { id: 'CHECK', text: CardsLoadingStates.CHECK },
-        { id: 'OPTIMIZE', text: CardsLoadingStates.OPTIMIZE }
+        { id: 'GENERATE', text: CardsLoadingStates.GENERATE, replacementParams: { current: 1, total: 0 } }, // generate cards
+        { id: 'CHECK', text: CardsLoadingStates.CHECK }, // check cards
+        //  fix cards if needed
+        { id: 'OPTIMIZE', text: CardsLoadingStates.OPTIMIZE } // optimize cards (optional)
     ]);
 
     // Initialize saving loading states
     const savingLoadingStates = useLoadingStates([
-        { id: 'PREPARE', text: SavingLoadingStates.PREPARE },
-        { id: 'CONNECT', text: SavingLoadingStates.CONNECT },
-        { id: 'SAVE', text: SavingLoadingStates.SAVE },
-        { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE }
+        { id: 'PREPARE', text: SavingLoadingStates.PREPARE }, //md to html
+        { id: 'CONNECT', text: SavingLoadingStates.CONNECT }, // check connection
+        { id: 'SAVE', text: SavingLoadingStates.SAVE }, // save to anki
+        { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE } // check if all cards are s^aved (load corresponding decks and check amounts)
     ]);
+
+    // Get the overview model from the model store
+    const overviewModel = useModelStore((state) => state.overviewModel);
+    const availableModels = useModelStore((state) => state.availableModels);
 
     // Reset all state to initial values
     const resetState = async () => {
         setShowCloseConfirmation(false);
-        setTopic("");
+        setUserInputContent("");
         setPromptId(defaultPromptId);
         setSelectedNoteVariants(noteVariants.map(variant => variant.id));
         setOutline([]);
@@ -163,47 +139,116 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     };
 
     // Update the selected prompt in the store when promptId changes
-    React.useEffect(() => {
-        if (promptId) {
-            selectPrompt(promptId);
-        }
-    }, [promptId, selectPrompt]);
+    // React.useEffect(() => {
+    //     if (promptId) {
+    //         selectPrompt(promptId);
+    //     }
+    // }, [promptId, selectPrompt]);
 
     const handleSubmitInput = () => {
-        setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
-        setOutline([]);
-        handleGeneratingOutline();
+        void handleGeneratingOutline();
     };
 
-    const handleGeneratingOutline = () => {
+    const handleGeneratingOutline = async () => {
+        const prevOutline = [...outline];
+
+        setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
+        setOutline([]);
         // 1. Start with ANALYZE
         outlineLoadingStates.setCurrentState('ANALYZE');
+        // Preprocess user input
+        const userInputContentProcessed = preprocessInput(userInputContent);
 
-        // Start with empty outline
-        setOutline([]);
+        // Validate the input
+        if (!isValidInput(userInputContentProcessed)) {
+            toast({
+                title: "Invalid input",
+                description: "Please provide a valid input with 1-1000 characters.",
+                variant: "destructive",
+            });
+            setCurrentStep(GenerationSteps.INPUT);
+            return;
+        }
 
-        // 2. After 1 second, move to GENERATE
+        // 2. Move to GENERATE
         setTimeout(() => {
             outlineLoadingStates.setCurrentState('GENERATE');
 
-            // 3. Start streaming in sections
-            // Add one section at a time with a delay to simulate streaming
-            sampleOutline.forEach((section, index) => {
-                setTimeout(() => {
-                    setOutline(prevOutline => [...prevOutline, section]);
+            // Use the overview model from the model store, or fall back to first available model or default
+            const model = overviewModel ?? availableModels[0]
+            if (!model) {
+                toast({
+                    title: "No model available",
+                    description: "Please select a model in the settings.",
+                    variant: "destructive",
+                });
+                return;
+            }
+            //TODO: make restricitons to not be able to use the deck creation when no model is available
 
-                    // After all sections are streamed in, move to OPTIMIZE
-                    if (index === sampleOutline.length - 1) {
-                        setTimeout(() => {
-                            outlineLoadingStates.setCurrentState('OPTIMIZE');
+            let selectedPrompt = prompts.find(prompt => prompt.id === promptId);
+            // if not found, use the default prompt
+            if (!selectedPrompt?.systemMessage) {
+                selectedPrompt = prompts[0];
+            }
 
-                            // Finally move to the REVIEWING_OUTLINE step
-                            setTimeout(() => {
-                                setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
-                            }, 1000);
-                        }, 500);
-                    }
-                }, 800 * (index + 1));
+            // Ensure we have a valid prompt with system message
+            if (!selectedPrompt?.systemMessage) {
+                toast({
+                    title: "No valid prompt available",
+                    description: "Please check your prompt configuration.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            // TODO: TIM get real values
+            const existingDecks = "'Uni::Sem 5::Economics::Basics::Introduction to Economics', 'Uni::Sem 5::Economics::Basics::Economics::Comparison'"
+            const selectedCardTypes = "'Q&A', 'Definition'"
+            const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"Q&A\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"Definition\"}]"
+
+            const totalPrompt = selectedPrompt.systemMessage
+                .replace("{existingDecks}", existingDecks)
+                .replace("{selectedCardTypes}", selectedCardTypes)
+                .replace("{userInput}", userInputContentProcessed)
+                .replace("{exampleOutput}", exampleOutput);
+
+            generateOutline(
+                model,
+                totalPrompt,
+                (update) => {
+                    // Handle streaming updates from the outline generation
+                    setOutline(update.result);
+                }
+            ).then(async finalResult => {
+                logger.info("finalResult", finalResult);
+                // 3. CHECK the results
+                outlineLoadingStates.setCurrentState('CHECK');
+
+                // Perform quality check on the outline
+                const isQualityGood = await checkOutlineQuality(finalResult.result, model, userInputContentProcessed);
+
+                if (!isQualityGood) {
+                    // 4. If quality check fails, OPTIMIZE
+                    outlineLoadingStates.setCurrentState('OPTIMIZE');
+
+                    // Apply optimization to the outline    
+                    const optimizedOutline = await optimizeOutline(finalResult.result, model, userInputContentProcessed);
+                    setOutline(optimizedOutline);
+
+                    // Finally move to the REVIEWING_OUTLINE step
+                    setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
+                } else {
+                    setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
+                }
+            }).catch(error => {
+                logger.error("Error generating outline:", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to generate outline. Please try again.",
+                    variant: "destructive",
+                });
+                setCurrentStep(GenerationSteps.INPUT);
             });
         }, 1000);
     };
@@ -388,7 +433,7 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
             title: "Success",
             description: "Your deck has been saved to Anki",
         });
-        onCreateDeck(topic);
+        onCreateDeck(userInputContent);
 
         handleClose();
     };
@@ -470,8 +515,8 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
             case GenerationSteps.INPUT:
                 return (
                     <InputStep
-                        topic={topic}
-                        setTopic={setTopic}
+                        topic={userInputContent}
+                        setTopic={setUserInputContent}
                         promptId={promptId}
                         setPromptId={setPromptId}
                         selectedNoteVariants={selectedNoteVariants}

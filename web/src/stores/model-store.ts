@@ -28,7 +28,7 @@ export const useModelStore = create<ModelState>()(
       ankiStatus: 'loading',
       setContentModel: (model) => set({ contentModel: model }),
       setOverviewModel: (model) => set({ overviewModel: model }),
-      setAvailableModels: (models) => set({ availableModels: models }),
+      setAvailableModels: (models) => set({ availableModels: [...models].sort() }),
       setOllamaStatus: (status) => set({ ollamaStatus: status }),
       setAnkiStatus: (status) => set({ ankiStatus: status }),
       setChatModel: (model) => set({ chatModel: model })

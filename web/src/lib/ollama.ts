@@ -166,28 +166,28 @@ export class OllamaClient {
         }
     }
 
-    async generateChatCompletionStream(
-        messages: ChatMessage[],
-        model: string,
-        options: OllamaOptions
-    ): Promise<ReadableStream<string>> {
-        const response = await fetch('http://localhost:11434/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model,
-                messages,
-                options,
-                stream: true
-            })
-        });
+    // async generateChatCompletionStream(
+    //     messages: ChatMessage[],
+    //     model: string,
+    //     options: OllamaOptions
+    // ): Promise<ReadableStream<string>> {
+    //     const response = await fetch('http://localhost:11434/api/chat', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //             model,
+    //             messages,
+    //             options,
+    //             stream: true
+    //         })
+    //     });
 
-        if (!response.ok || !response.body) {
-            throw new Error('Failed to generate response');
-        }
+    //     if (!response.ok || !response.body) {
+    //         throw new Error('Failed to generate response');
+    //     }
 
-        return response.body.pipeThrough(new TextDecoderStream());
-    }
+    //     return response.body.pipeThrough(new TextDecoderStream());
+    // }
 }
 
 // Create a default instance

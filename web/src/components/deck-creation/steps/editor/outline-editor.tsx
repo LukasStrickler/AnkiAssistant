@@ -23,7 +23,7 @@ export function OutlineEditor({
     // Find the variant ID of the current card type - try matching by ID first, then by name
     const currentVariantId = noteVariants.find(
         variant => variant.id === outlineItem.card_type || variant.name === outlineItem.card_type
-    )?.id || '';
+    )?.id ?? '';
 
     // Handle card type change from the selector
     const handleCardTypeChange = (selectedIds: string[]) => {
