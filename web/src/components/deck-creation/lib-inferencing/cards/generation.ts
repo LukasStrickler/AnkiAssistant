@@ -2,10 +2,11 @@
 
 import { OutlineItem, Card } from "../../steps/types";
 
-export function generateCard(outlineItem: OutlineItem): Card {
+export async function generateCard(outlineItem: OutlineItem): Promise<Card> {
     // inference
     // check format
-
+    // await 500ms
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     const response = `
         {

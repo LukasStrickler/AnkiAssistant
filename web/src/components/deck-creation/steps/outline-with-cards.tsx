@@ -60,6 +60,8 @@ export function OutlineWithCards({
         return status.replace(/-/g, " ").replace(/\b\w/g, char => char.toUpperCase());
     };
 
+    const anyOutlineItemsPending = outline.some(item => item.status === "pending" || item.status === "generating");
+
     return (
         <ScrollArea className="w-full h-full bg-zinc-900/70 rounded-lg p-2">
             <Accordion
@@ -77,7 +79,7 @@ export function OutlineWithCards({
                             selectedOutlineId === item.id && "border-primary",
                             item.status === "error" && "border-destructive",
                             item.status === "generating" && "border-yellow-500",
-                            item.status === "fixing-error" && "border-blue-500"
+                            item.status === "pending" && "border-gray-500"
 
                         )}
                     >
@@ -103,7 +105,7 @@ export function OutlineWithCards({
                                             size="sm"
                                             variant="outline"
                                             onClick={() => onEditOutline(item)}
-                                            disabled={item.status === "generating"}
+                                            disabled={item.status === "generating" || item.status === "pending"}
                                             className="rounded-lg"
                                         >
                                             Edit Outline
@@ -140,7 +142,7 @@ export function OutlineWithCards({
                                                         size="sm"
                                                         onClick={() => onRegenerateCard(item)}
                                                         className="gap-2 rounded-lg"
-                                                        disabled={item.status === "generating"}
+                                                        disabled={anyOutlineItemsPending}
                                                     >
                                                         <RefreshCw className="h-3 w-3" />
                                                         Regenerate

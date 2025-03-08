@@ -17,6 +17,62 @@ export async function generateOutline(
     console.log("prompt", prompt);
     console.log("model", model);
 
+    // just wait 1s then return pre-defined outline
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const returnValue = {
+        result:
+            [
+                {
+                    "id": 1,
+                    "concept": "Introduction",
+                    "key_points": "Covers basics of quantum computing concepts including qubits, superposition, and entanglement.",
+                    "deck": "Uni::Sem 5::Economics::Basics",
+                    "card_type": "Q&A",
+                    "status": "outline-review"
+                },
+                {
+                    "id": 2,
+                    "concept": "Basics",
+                    "key_points": "Provides an overview and fundamental concepts of quantum computing.",
+                    "deck": "Uni::Sem 5::Economics::Basics",
+                    "card_type": "Definition",
+                    "status": "outline-review"
+                },
+                {
+                    "id": 3,
+                    "concept": "Quantum Computing Basics",
+                    "key_points": "Explains key topics like qubits, superposition, entanglement, and their roles in quantum computing.",
+                    "deck": "Uni::Sem 5::Economics::Basics",
+                    "card_type": "Definition",
+                    "status": "outline-review"
+                },
+                {
+                    "id": 4,
+                    "concept": "Qubits and Superposition",
+                    "key_points": "Details about qubit states existing simultaneously due to superposition.",
+                    "deck": "Uni::Sem 5::Economics::Basics",
+                    "card_type": "Definition",
+                    "status": "outline-review"
+                },
+                {
+                    "id": 5,
+                    "concept": "Entanglement and Parallelism",
+                    "key_points": "Explains how entanglement links qubit states for parallel processing optimization.",
+                    "deck": "Uni::Sem 5::Economics::Basics",
+                    "card_type": "Definition",
+                    "status": "outline-review"
+                }
+            ],
+        ItemsWithMissingJsonFields: []
+    }
+
+    if (onStreamUpdate) {
+        onStreamUpdate(returnValue);
+    }
+
+    return returnValue;
+
     // Initialize Ollama client
     const ollama = new OllamaClient();
 

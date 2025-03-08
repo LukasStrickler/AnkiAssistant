@@ -9,4 +9,4 @@ export { OutlineCardsView } from './outline-cards-view';
 export * from './types';
 
 // Loading states
-export { EnhancedLoadingStep } from './loading-step'; 
+export { EnhancedLoadingStep, CompactLoadingIndicator } from './loading-step'; 

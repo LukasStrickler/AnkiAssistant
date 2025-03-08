@@ -88,4 +88,36 @@ export function EnhancedLoadingStep({ title, loadingConfig }: EnhancedLoadingSte
             </div>
         </div>
     );
+}
+
+// Compact loading indicator for displaying in a smaller space
+interface CompactLoadingIndicatorProps {
+    loadingConfig: LoadingStateConfig;
+}
+
+export function CompactLoadingIndicator({ loadingConfig }: CompactLoadingIndicatorProps) {
+    // Get the current loading state
+    const currentState = loadingConfig.currentId
+        ? loadingConfig.items.find(item => item.id === loadingConfig.currentId)
+        : null;
+
+    if (!currentState) return null;
+
+    // Process replacement parameters in text
+    let processedText = currentState.text;
+    if (currentState.replacementParams) {
+        Object.entries(currentState.replacementParams).forEach(([key, value]) => {
+            // limit to 100 characters
+            processedText = processedText.replace(`{${key}}`, String(value).slice(0, 30))
+        });
+    }
+
+    return (
+        <div className="p-2 bg-background border rounded-md shadow-sm w-full">
+            <div className="flex items-center space-x-3 w-full">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <div className="text-sm text-foreground">{processedText}</div>
+            </div>
+        </div>
+    );
 } 

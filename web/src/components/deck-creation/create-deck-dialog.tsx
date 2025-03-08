@@ -30,7 +30,8 @@ import {
     OutlineLoadingStates,
     CardsLoadingStates,
     SavingLoadingStates,
-    OutlineEditor
+    OutlineEditor,
+    CompactLoadingIndicator
 } from "./steps";
 import { HelpPanel } from "./steps/input/help-panel";
 import { Separator } from "@/components/ui/separator";
@@ -38,36 +39,13 @@ import { preprocessInput, isValidInput } from "./lib-inferencing/outline/preproc
 import { checkOutlineQuality } from "./lib-inferencing/outline/qualityCheck";
 import { optimizeOutline } from "./lib-inferencing/outline/qualityOptimize";
 import { generateOutline } from "./lib-inferencing/outline/generation";
+import { generateCard } from "./lib-inferencing/cards/generation";
+import { checkCardQuality } from "./lib-inferencing/cards/qualityCheck";
 import { useModelStore } from "@/stores/model-store";
 import { logger } from "@/lib/logger";
 interface CreateDeckDialogProps {
     onCreateDeck: (deckName: string) => void;
 }
-
-const sampleCards: Card[] = [
-    {
-        "id": 1,
-        "front": "What is Economics?",
-        "back": "Economics is the study of how individuals, businesses, and governments allocate resources. It involves understanding the production, distribution, and consumption of goods and services.",
-    },
-    {
-        "id": 2,
-        "front": "Microeconomics vs. Macroeconomics",
-        "back": "**Microeconomics** focuses on individual decision-making, such as supply and demand of goods and services. It examines the behavior of individual consumers and firms in making decisions regarding consumption, production, and resource allocation.\n\n**Macroeconomics**, on the other hand, deals with large-scale economic factors like Gross Domestic Product (GDP), unemployment rates, and inflation. It analyzes the overall performance of an economy and its institutions.",
-    },
-    // {
-    //     "id": 3,
-    //     "front": "What is the Law of Demand?",
-    //     "back": "The Law of Demand states that as price decreases, demand for a good or service increases. This relationship between price and quantity demanded is fundamental to understanding supply and demand in economics.",
-    // },
-    // {
-    //     "id": 4,
-    //     "front": "What is the Law of Supply?",
-    //     "back": "The Law of Supply states that as the price of a good or service increases, the quantity supplied also increases. This relationship reflects the incentive for producers to supply more when prices rise, as it becomes profitable to do so.",
-    // }
-]
-
-
 
 export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     const [userInputContent, setUserInputContent] = useState("");
@@ -91,27 +69,26 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
 
     // Initialize outline loading states with our new system
     const outlineLoadingStates = useLoadingStates([
-        // is valid input
-        { id: 'ANALYZE', text: OutlineLoadingStates.ANALYZE }, // preprocess input
-        { id: 'GENERATE', text: OutlineLoadingStates.GENERATE }, // generate outline
-        { id: 'CHECK', text: OutlineLoadingStates.CHECK }, // check outline
-        { id: 'OPTIMIZE', text: OutlineLoadingStates.OPTIMIZE } // optimize outline (optional)
+        // Required states that always run
+        { id: 'ANALYZE', text: OutlineLoadingStates.ANALYZE, required: true }, // preprocess input
+        { id: 'GENERATE', text: OutlineLoadingStates.GENERATE, required: true }, // generate outline
+        { id: 'CHECK', text: OutlineLoadingStates.CHECK, required: true }, // check outline
+        // Conditional state that only runs if needed
+        { id: 'OPTIMIZE', text: OutlineLoadingStates.OPTIMIZE, required: false } // optimize outline (conditional)
     ]);
 
     // Initialize cards loading states with our new system
     const cardsLoadingStates = useLoadingStates([
-        { id: 'GENERATE', text: CardsLoadingStates.GENERATE, replacementParams: { current: 1, total: 0 } }, // generate cards
-        { id: 'CHECK', text: CardsLoadingStates.CHECK }, // check cards
-        //  fix cards if needed
-        { id: 'OPTIMIZE', text: CardsLoadingStates.OPTIMIZE } // optimize cards (optional)
+        { id: 'GENERATE', text: CardsLoadingStates.GENERATE, required: true, replacementParams: { current: 1, total: 0 } }, // generate cards
     ]);
 
     // Initialize saving loading states
     const savingLoadingStates = useLoadingStates([
-        { id: 'PREPARE', text: SavingLoadingStates.PREPARE }, //md to html
-        { id: 'CONNECT', text: SavingLoadingStates.CONNECT }, // check connection
-        { id: 'SAVE', text: SavingLoadingStates.SAVE }, // save to anki
-        { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE } // check if all cards are s^aved (load corresponding decks and check amounts)
+        // All states in the saving process are required
+        { id: 'PREPARE', text: SavingLoadingStates.PREPARE, required: true }, // md to html
+        { id: 'CONNECT', text: SavingLoadingStates.CONNECT, required: true }, // check connection
+        { id: 'SAVE', text: SavingLoadingStates.SAVE, required: true }, // save to anki
+        { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE, required: true } // check if all cards are saved
     ]);
 
     // Get the overview model from the model store
@@ -154,10 +131,22 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
 
         setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
         setOutline([]);
-        // 1. Start with ANALYZE
+
+        // Reset outline loading states to ensure we have the proper configuration
+        outlineLoadingStates.resetStates([
+            // Required states that always run
+            { id: 'ANALYZE', text: OutlineLoadingStates.ANALYZE, required: true },
+            { id: 'GENERATE', text: OutlineLoadingStates.GENERATE, required: true },
+            { id: 'CHECK', text: OutlineLoadingStates.CHECK, required: true },
+            // Conditional state that only runs if needed
+            { id: 'OPTIMIZE', text: OutlineLoadingStates.OPTIMIZE, required: false }
+        ]);
+
+        // 1. Start with ANALYZE - this is a required state
         outlineLoadingStates.setCurrentState('ANALYZE');
+
         // Preprocess user input
-        const userInputContentProcessed = preprocessInput(userInputContent);
+        const userInputContentProcessed = await preprocessInput(userInputContent);
 
         // Validate the input
         if (!isValidInput(userInputContentProcessed)) {
@@ -170,87 +159,83 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
             return;
         }
 
-        // 2. Move to GENERATE
-        setTimeout(() => {
-            outlineLoadingStates.setCurrentState('GENERATE');
+        // 2. Move to GENERATE - this is a required state
+        outlineLoadingStates.setCurrentState('GENERATE');
 
-            // Use the overview model from the model store, or fall back to first available model or default
-            const model = overviewModel ?? availableModels[0]
-            if (!model) {
-                toast({
-                    title: "No model available",
-                    description: "Please select a model in the settings.",
-                    variant: "destructive",
-                });
-                return;
-            }
-            //TODO: make restricitons to not be able to use the deck creation when no model is available
-
-            let selectedPrompt = prompts.find(prompt => prompt.id === promptId);
-            // if not found, use the default prompt
-            if (!selectedPrompt?.systemMessage) {
-                selectedPrompt = prompts[0];
-            }
-
-            // Ensure we have a valid prompt with system message
-            if (!selectedPrompt?.systemMessage) {
-                toast({
-                    title: "No valid prompt available",
-                    description: "Please check your prompt configuration.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            // TODO: TIM get real values
-            const existingDecks = "'Uni::Sem 5::Economics::Basics::Introduction to Economics', 'Uni::Sem 5::Economics::Basics::Economics::Comparison'"
-            const selectedCardTypes = "'Q&A', 'Definition'"
-            const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"Q&A\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"Definition\"}]"
-
-            const totalPrompt = selectedPrompt.systemMessage
-                .replace("{existingDecks}", existingDecks)
-                .replace("{selectedCardTypes}", selectedCardTypes)
-                .replace("{userInput}", userInputContentProcessed)
-                .replace("{exampleOutput}", exampleOutput);
-
-            generateOutline(
-                model,
-                totalPrompt,
-                (update) => {
-                    // Handle streaming updates from the outline generation
-                    setOutline(update.result);
-                }
-            ).then(async finalResult => {
-                logger.info("finalResult", finalResult);
-                // 3. CHECK the results
-                outlineLoadingStates.setCurrentState('CHECK');
-
-                // Perform quality check on the outline
-                const isQualityGood = await checkOutlineQuality(finalResult.result, model, userInputContentProcessed);
-
-                if (!isQualityGood) {
-                    // 4. If quality check fails, OPTIMIZE
-                    outlineLoadingStates.setCurrentState('OPTIMIZE');
-
-                    // Apply optimization to the outline    
-                    const optimizedOutline = await optimizeOutline(finalResult.result, model, userInputContentProcessed);
-                    setOutline(optimizedOutline);
-
-                    // Finally move to the REVIEWING_OUTLINE step
-                    setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
-                } else {
-                    setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
-                }
-            }).catch(error => {
-                logger.error("Error generating outline:", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to generate outline. Please try again.",
-                    variant: "destructive",
-                });
-                setCurrentStep(GenerationSteps.INPUT);
+        // Use the overview model from the model store, or fall back to first available model or default
+        const model = overviewModel ?? availableModels[0]
+        if (!model) {
+            toast({
+                title: "No model available",
+                description: "Please select a model in the settings.",
+                variant: "destructive",
             });
-        }, 1000);
+            return;
+        }
+
+        // Rest of model validation code...
+        let selectedPrompt = prompts.find(prompt => prompt.id === promptId);
+        if (!selectedPrompt?.systemMessage) {
+            selectedPrompt = prompts[0];
+        }
+
+        if (!selectedPrompt?.systemMessage) {
+            toast({
+                title: "No valid prompt available",
+                description: "Please check your prompt configuration.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        // Generate example values and prompt
+        const existingDecks = "'Uni::Sem 5::Economics::Basics::Introduction to Economics', 'Uni::Sem 5::Economics::Basics::Economics::Comparison'"
+        const selectedCardTypes = "'Q&A', 'Definition'"
+        const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"Q&A\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"Definition\"}]"
+
+        const totalPrompt = selectedPrompt.systemMessage
+            .replace("{existingDecks}", existingDecks)
+            .replace("{selectedCardTypes}", selectedCardTypes)
+            .replace("{userInput}", userInputContentProcessed)
+            .replace("{exampleOutput}", exampleOutput);
+
+        generateOutline(
+            model,
+            totalPrompt,
+            (update) => {
+                // Handle streaming updates from the outline generation
+                setOutline(update.result);
+            }
+        ).then(async finalResult => {
+            logger.info("finalResult", finalResult);
+
+            // 3. CHECK is a required state, always run it
+            outlineLoadingStates.setCurrentState('CHECK');
+
+            // Perform quality check on the outline
+            const isQualityGood = await checkOutlineQuality(finalResult.result, model, userInputContentProcessed);
+
+            if (!isQualityGood) {
+                // 4. OPTIMIZE is conditional, only run if quality check fails
+                outlineLoadingStates.setCurrentState('OPTIMIZE');
+
+                // Apply optimization to the outline    
+                const optimizedOutline = await optimizeOutline(finalResult.result, model, userInputContentProcessed);
+                setOutline(optimizedOutline);
+            }
+
+            // Move to the REVIEWING_OUTLINE step regardless of whether optimization was needed
+            setCurrentStep(GenerationSteps.REVIEWING_OUTLINE);
+
+        }).catch(error => {
+            logger.error("Error generating outline:", error);
+            toast({
+                title: "Error",
+                description: "Failed to generate outline. Please try again.",
+                variant: "destructive",
+            });
+            setCurrentStep(GenerationSteps.INPUT);
+        });
     };
 
     const handleSubmitOutline = () => {
@@ -258,143 +243,158 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         handleGeneratingCards();
     };
 
-    const handleGeneratingCards = () => {
-        const totalCards = sampleCards.length;
+    const handleGenerateOneCard = async (outlineItem: OutlineItem) => {
 
-        // Reset cards loading states and set proper initial parameters
-        cardsLoadingStates.resetStates([
-            { id: 'GENERATE', text: CardsLoadingStates.GENERATE, replacementParams: { current: 1, total: totalCards } },
-            { id: 'CHECK', text: CardsLoadingStates.CHECK },
-            { id: 'OPTIMIZE', text: CardsLoadingStates.OPTIMIZE }
-        ]);
-
-        // Start with GENERATE for first card
-        cardsLoadingStates.setCurrentState('GENERATE');
-
-        //set all outline items to pending
+        // Set card status to generating
         setOutline(prevOutline =>
-            prevOutline.map(item => ({ ...item, status: "pending" }))
+            prevOutline.map(item =>
+                item.id === outlineItem.id
+                    ? { ...item, status: "generating", progress: 0 }
+                    : item
+            )
         );
 
-        // Sequential card generation - each completes before moving to next
-        const generateCardSequentially = (index = 0) => {
-            if (index >= totalCards) {
-                // All cards generated, move to check and optimize
-                setTimeout(() => {
-                    cardsLoadingStates.setCurrentState('CHECK');
 
-                    setTimeout(() => {
-                        cardsLoadingStates.setCurrentState('OPTIMIZE');
 
-                        setTimeout(() => {
-                            setCurrentStep(GenerationSteps.REVIEWING_CARDS);
-                        }, 1000);
-                    }, 1000);
-                }, 500);
+        try {
+            // Generate the card using the lib-inferencing
+            const generatedCard = await generateCard(outlineItem);
+
+            // Check card quality
+            const isValid = checkCardQuality(generatedCard);
+
+            if (isValid) {
+                // Update outline item with generated card and mark as card-review immediately
+                setOutline(prevOutline =>
+                    prevOutline.map(item =>
+                        item.id === outlineItem.id
+                            ? {
+                                ...item,
+                                status: "card-review",
+                                progress: 100,
+                                card: generatedCard
+                            }
+                            : item
+                    )
+                );
+
+
+                return true;
+            } else {
+                // Handle invalid card case
+                setOutline(prevOutline =>
+                    prevOutline.map(item =>
+                        item.id === outlineItem.id
+                            ? {
+                                ...item,
+                                status: "error",
+                                error: "Generated card failed quality check",
+                                progress: 0
+                            }
+                            : item
+                    )
+                );
+                return false;
+            }
+        } catch (error) {
+            // Handle error for individual card generation
+            logger.error(`Error generating card for ${outlineItem.concept}:`, error);
+
+            // Update outline item to error state
+            setOutline(prevOutline =>
+                prevOutline.map(item =>
+                    item.id === outlineItem.id
+                        ? {
+                            ...item,
+                            status: "error",
+                            error: "Failed to generate card",
+                            progress: 0
+                        }
+                        : item
+                )
+            );
+            return false;
+        }
+    }
+
+    const handleGeneratingCards = async () => {
+        setCurrentStep(GenerationSteps.GENERATING_CARDS);
+
+        cardsLoadingStates.resetStates([
+            { id: 'GENERATE', text: "Generating card {current}/{total}: {concept}...", required: true, replacementParams: { current: 1, total: outline.length } }
+        ]);
+
+        try {
+            const outlineToProcess = outline;
+
+            if (outlineToProcess.length === 0) {
+                // If no cards need to be generated, move directly to review
+                setCurrentStep(GenerationSteps.REVIEWING_CARDS);
                 return;
             }
 
-            const currentCardNum = index + 1;
-
-            // Update the current card number in the loading text
-            cardsLoadingStates.updateStateParams('GENERATE', {
-                current: currentCardNum,
-                total: totalCards
-            });
-
-            // Set current item to generating status
             setOutline(prevOutline =>
                 prevOutline.map(item =>
-                    item.id === currentCardNum
-                        ? { ...item, status: "generating" }
+                    outlineToProcess.some(o => o.id === item.id)
+                        ? { ...item, status: "pending" }
                         : item
                 )
             );
 
-            // Simulate card generation
-            setTimeout(() => {
-                // Card 2 (index 1) will fail and need fixing
-                if (index === 1) {
-                    // Update outline item status
-                    setOutline(prevOutline =>
-                        prevOutline.map(item =>
-                            item.id === currentCardNum
-                                ? { ...item, status: "fixing-error", error: "Failed to generate card" }
-                                : item
-                        )
-                    );
+            for (const item of outlineToProcess) {
+                // Update loading state to indicate which card we're working on
+                cardsLoadingStates.updateStateParams('GENERATE', {
+                    current: item.id,
+                    total: outlineToProcess.length,
+                    concept: item.concept
+                });
+                await handleGenerateOneCard(item);
+            }
 
-                    // Inject a FIX state after GENERATE
-                    cardsLoadingStates.addConditionalState(
-                        {
-                            id: 'FIX',
-                            text: CardsLoadingStates.FIX,
-                            conditional: true,
-                            replacementParams: { current: currentCardNum, total: totalCards }
-                        },
-                        'GENERATE'
-                    );
+            setCurrentStep(GenerationSteps.REVIEWING_CARDS);
 
-                    // Move to FIX state
-                    setTimeout(() => {
-                        cardsLoadingStates.setCurrentState('FIX');
+        } catch (error) {
+            void resetState();
+            logger.error("Error in card generation process:", error);
+            toast({
+                title: "Error",
+                description: "Failed to generate cards. Check console for more details.",
+                variant: "destructive",
+            });
+        }
+    };
 
-                        // After fixing, update the outline item and proceed
-                        setTimeout(() => {
-                            setOutline(prevOutline =>
-                                prevOutline.map(item =>
-                                    item.id === currentCardNum
-                                        ? {
-                                            ...item,
-                                            status: "card-review",
-                                            error: undefined,
-                                            card: sampleCards[index]
-                                        }
-                                        : item
-                                )
-                            );
+    const handleRegenerateCard = (outlineItem: OutlineItem) => {
+        // Clear the card and start generating a new one
+        setOutline(prevOutline =>
+            prevOutline.map(item =>
+                item.id === outlineItem.id
+                    ? { ...item, status: "pending", card: undefined }
+                    : item
+            )
+        );
 
-                            // Move back to GENERATE for the next card
-                            cardsLoadingStates.setCurrentState('GENERATE');
-                            generateCardSequentially(index + 1);
-                        }, 1500);
-                    }, 800);
-                } else {
-                    // Update outline item with card and status
-                    setOutline(prevOutline =>
-                        prevOutline.map(item =>
-                            item.id === currentCardNum
-                                ? {
-                                    ...item,
-                                    status: "card-review",
-                                    card: sampleCards[index]
-                                }
-                                : item
-                        )
-                    );
-
-                    // Proceed to next card
-                    setTimeout(() => {
-                        generateCardSequentially(index + 1);
-                    }, 800);
-                }
-            }, 1500);
-        };
-
-        // Start the sequential generation with the first card
-        generateCardSequentially();
+        // Stay in the current step (likely REVIEWING_CARDS) 
+        // but make sure handleGenerateOneCard updates the loading state
+        cardsLoadingStates.updateStateParams('GENERATE', {
+            current: 1,
+            total: 1,
+            concept: outlineItem.concept
+        });
+        void handleGenerateOneCard(outlineItem);
     };
 
     const handleRegenerateAllCards = () => {
-        //TOOD: implement this
         setCurrentStep(GenerationSteps.GENERATING_CARDS);
 
-        const prevOutline = [...outline];
+        // remove all cards from the outline
         setOutline(prevOutline =>
-            prevOutline.map(item => ({ ...item, status: "pending", card: undefined }))
+            prevOutline.map(item =>
+                item.status === "card-review" ? { ...item, status: "pending", card: undefined } : item
+            )
         );
 
-        handleGeneratingCards();
+        void handleGeneratingCards();
     };
 
     const handleSaveDeck = async () => {
@@ -402,30 +402,74 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         const totalCards = outline.filter(item => item.status === "card-review").length;
 
         // Reset saving loading states with proper initial parameters
+        // For saving, we'll make all states required since they're all essential steps
         savingLoadingStates.resetStates([
-            { id: 'PREPARE', text: SavingLoadingStates.PREPARE },
-            { id: 'CONNECT', text: SavingLoadingStates.CONNECT },
-            { id: 'SAVE', text: SavingLoadingStates.SAVE, replacementParams: { current: 1, total: totalCards } },
-            { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE }
+            { id: 'PREPARE', text: SavingLoadingStates.PREPARE, required: true },
+            { id: 'CONNECT', text: SavingLoadingStates.CONNECT, required: true },
+            { id: 'SAVE', text: SavingLoadingStates.SAVE, required: true, replacementParams: { current: 1, total: totalCards } },
+            { id: 'FINALIZE', text: SavingLoadingStates.FINALIZE, required: true }
         ]);
 
-        // Simulate save to Anki with steps
+        // PREPARE step (required) - convert markdown to HTML or other preparation
         savingLoadingStates.setCurrentState('PREPARE');
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // Conditionally add error-handling state if needed
+        const hasConnectionIssue = false; // Simulated condition
+        if (hasConnectionIssue) {
+            // Add a conditional state for reconnection attempts
+            savingLoadingStates.addConditionalState(
+                {
+                    id: 'RECONNECT',
+                    text: "Reconnecting to Anki...",
+                    required: false,
+                    conditional: true
+                },
+                'PREPARE'
+            );
+            savingLoadingStates.setCurrentState('RECONNECT');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // After reconnection, remove this conditional state
+            savingLoadingStates.removeConditionalState('RECONNECT');
+        }
+
+        // CONNECT step (required) - establish connection to Anki
         savingLoadingStates.setCurrentState('CONNECT');
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Save cards one by one
+        // SAVE step (required) - save cards one by one
         savingLoadingStates.setCurrentState('SAVE');
         for (let i = 0; i < totalCards; i++) {
             savingLoadingStates.updateStateParams('SAVE', {
                 current: i + 1,
                 total: totalCards
             });
+
+            // Simulate occasional saving error for a specific card
+            if (i === 2 && totalCards > 3) {
+                // Add a conditional state for retrying the save
+                savingLoadingStates.addConditionalState(
+                    {
+                        id: 'RETRY',
+                        text: `Retrying save for card ${i + 1}...`,
+                        required: false,
+                        conditional: true
+                    },
+                    'SAVE'
+                );
+
+                savingLoadingStates.setCurrentState('RETRY');
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // After retry, remove this conditional state
+                savingLoadingStates.removeConditionalState('RETRY');
+                savingLoadingStates.setCurrentState('SAVE');
+            }
+
             await new Promise(resolve => setTimeout(resolve, 300));
         }
 
+        // FINALIZE step (required) - verify all cards were saved
         savingLoadingStates.setCurrentState('FINALIZE');
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -443,6 +487,11 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
     };
 
     const handleEditOutline = (outlineItem: OutlineItem) => {
+        // Skip if the outline item is in pending state to prevent editing
+        if (outlineItem.status === "pending" || outlineItem.status === "generating") {
+            return;
+        }
+
         setSelectedOutlineId(outlineItem.id);
         setSelectedCard(null);
         setEditingOutline(outlineItem);
@@ -472,42 +521,8 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
         );
     };
 
-    const handleRegenerateCard = (outlineItem: OutlineItem) => {
-        const prevOutline = [...outline]
-        //clear the card from the outline item
-        prevOutline.map(item =>
-            item.id === outlineItem.id
-                ? { ...item, card: undefined }
-                : item
-        );
-
-        // Update the outline item status
-        setOutline(prevOutline =>
-            prevOutline.map(item =>
-                item.id === outlineItem.id
-                    ? { ...item, status: "generating", card: undefined }
-                    : item
-            )
-        );
-
-        // Simulate card regeneration
-        setTimeout(() => {
-            setOutline(prevOutline =>
-                prevOutline.map(item =>
-                    item.id === outlineItem.id
-                        ? {
-                            ...item,
-                            status: "card-review",
-                            card: {
-                                ...item.card!,
-                                front: `Regenerated front for ${item.concept}`,
-                                back: `Regenerated back for ${item.concept}`
-                            }
-                        }
-                        : item
-                )
-            );
-        }, 1500);
+    const isCardGenerationInProgress = () => {
+        return outline.some(item => item.status === "generating" || item.status === "pending");
     };
 
     const renderLeftContent = () => {
@@ -525,22 +540,18 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                     />
                 );
             case GenerationSteps.GENERATING_OUTLINE:
-            case GenerationSteps.GENERATING_CARDS:
             case GenerationSteps.SAVING_DECK:
                 return (
                     <EnhancedLoadingStep
-                        title={currentStep === GenerationSteps.GENERATING_OUTLINE ? "Generating Outline" :
-                            currentStep === GenerationSteps.GENERATING_CARDS ? "Generating Cards" :
-                                "Saving Deck"}
+                        title={currentStep === GenerationSteps.GENERATING_OUTLINE ? "Generating Outline" : "Saving Deck"}
                         loadingConfig={
-                            currentStep === GenerationSteps.GENERATING_OUTLINE ? outlineLoadingStates.config :
-                                currentStep === GenerationSteps.GENERATING_CARDS ? cardsLoadingStates.config :
-                                    savingLoadingStates.config
+                            currentStep === GenerationSteps.GENERATING_OUTLINE ? outlineLoadingStates.config : savingLoadingStates.config
                         }
                     />
                 );
             case GenerationSteps.REVIEWING_OUTLINE:
             case GenerationSteps.REVIEWING_CARDS:
+            case GenerationSteps.GENERATING_CARDS:
                 if (selectedCard) {
                     const outlineItem = outline.find(item => item.card?.id === selectedCard.id);
                     return (
@@ -574,18 +585,30 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                         <h2 className="text-2xl font-bold mb-4">
                             {currentStep === GenerationSteps.REVIEWING_OUTLINE ? "Review Outline" : "Review Cards"}
                         </h2>
+
+                        {/* Show compact loading indicator during card generation */}
                         <div className="flex-grow" />
+
                         {!editingOutline && !selectedCard && (
-                            <Button
-                                onClick={currentStep === GenerationSteps.REVIEWING_OUTLINE ? handleSubmitOutline : handleSaveDeck}
-                                className="w-full"
-                            >
-                                {currentStep === GenerationSteps.REVIEWING_OUTLINE ? (
-                                    <>Generate Cards <ChevronRight className="ml-2" /></>
+                            <>
+                                {(currentStep === GenerationSteps.GENERATING_CARDS && isCardGenerationInProgress()) ||
+                                    (currentStep === GenerationSteps.REVIEWING_CARDS && isCardGenerationInProgress()) ? (
+                                    <div className="w-full">
+                                        <CompactLoadingIndicator loadingConfig={cardsLoadingStates.config} />
+                                    </div>
                                 ) : (
-                                    <>Save to Anki <ChevronRight className="ml-2" /></>
+                                    <Button
+                                        onClick={currentStep === GenerationSteps.REVIEWING_OUTLINE ? handleSubmitOutline : handleSaveDeck}
+                                        className="w-full"
+                                    >
+                                        {currentStep === GenerationSteps.REVIEWING_OUTLINE ? (
+                                            <>Generate Cards <ChevronRight className="ml-2" /></>
+                                        ) : (
+                                            <>Save to Anki <ChevronRight className="ml-2" /></>
+                                        )}
+                                    </Button>
                                 )}
-                            </Button>
+                            </>
                         )}
                     </div>
                 );
@@ -615,22 +638,25 @@ export function CreateDeckDialog({ onCreateDeck }: CreateDeckDialogProps) {
                                     : undefined
                             }
                             onRegenerateCards={
-                                currentStep === GenerationSteps.REVIEWING_CARDS
+                                currentStep === GenerationSteps.REVIEWING_CARDS && !isCardGenerationInProgress()
                                     ? handleRegenerateAllCards
                                     : undefined
                             }
                             onRegenerateCard={
-                                currentStep === GenerationSteps.REVIEWING_CARDS
+                                (currentStep === GenerationSteps.REVIEWING_CARDS && !isCardGenerationInProgress()) ||
+                                    currentStep === GenerationSteps.GENERATING_CARDS
                                     ? handleRegenerateCard
                                     : undefined
                             }
                             onEditCard={
-                                currentStep === GenerationSteps.REVIEWING_CARDS
+                                (currentStep === GenerationSteps.REVIEWING_CARDS || currentStep === GenerationSteps.GENERATING_CARDS)
                                     ? handleEditCard
                                     : undefined
                             }
                             onEditOutline={
-                                (currentStep === GenerationSteps.REVIEWING_OUTLINE || currentStep === GenerationSteps.REVIEWING_CARDS)
+                                (currentStep === GenerationSteps.REVIEWING_OUTLINE ||
+                                    currentStep === GenerationSteps.REVIEWING_CARDS ||
+                                    currentStep === GenerationSteps.GENERATING_CARDS)
                                     ? handleEditOutline
                                     : undefined
                             }

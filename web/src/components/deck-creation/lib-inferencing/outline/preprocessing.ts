@@ -6,7 +6,11 @@ export function isValidInput(input: string) {
     return greaterThanZero && smallerThanMax;
 }
 
-export function preprocessInput(input: string) {
+export async function preprocessInput(input: string) {
+
+    // await 500ms
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // TODO: chunk / split input into chunks of 1000 characters
     const cleanedInput = input.trim();
     const lowerCasedInput = cleanedInput.toLowerCase();

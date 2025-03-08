@@ -10,7 +10,7 @@ export const GenerationSteps = {
 export type GenerationStep = (typeof GenerationSteps)[keyof typeof GenerationSteps];
 
 export const OutlineLoadingStates = {
-    ANALYZE: "Analyzing input and chunking notes...",
+    ANALYZE: "Preparing input...",
     GENERATE: "Generating outline...",
     CHECK: "Checking Results...",
     OPTIMIZE: "Optimizing outline..."
@@ -19,10 +19,10 @@ export const OutlineLoadingStates = {
 export type OutlineLoadingState = (typeof OutlineLoadingStates)[keyof typeof OutlineLoadingStates];
 
 export const CardsLoadingStates = {
-    GENERATE: "Generating card {current} of {total}...",
-    CHECK: "Checking card quality...",
-    OPTIMIZE: "Optimizing cards...",
-    FIX: "Fixing card {current}..."
+    GENERATE: "Generating card {current}/{total}: {concept}...",
+    CHECK: "Checking card {current}/{total}: {concept}...",
+    FIX: "Fixing card {current}/{total}: {concept}...",
+    OPTIMIZE: "Optimizing card {current}/{total}: {concept}..."
 } as const;
 
 export type CardsLoadingState = (typeof CardsLoadingStates)[keyof typeof CardsLoadingStates];
@@ -41,6 +41,7 @@ export interface LoadingStateItem {
     id: string;
     text: string;
     conditional?: boolean;
+    required?: boolean;
     replacementParams?: Record<string, string | number>;
 }
 
@@ -62,7 +63,8 @@ export interface OutlineItem {
     key_points: string;
     deck: string;
     card_type: string;
-    status: "outline-review" | "pending" | "generating" | "card-review" | "fixing-error" | "error";
+    status: "outline-review" | "pending" | "generating" | "checking" | "fixing-error" | "optimizing" | "card-review" | "error";
+    progress?: number;
     error?: string;
     card?: Card;
 }
