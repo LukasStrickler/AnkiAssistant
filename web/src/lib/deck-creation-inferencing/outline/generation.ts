@@ -1,5 +1,5 @@
 // Import the OutlineItem type
-import { OutlineItem } from '@/components/deck-creation/steps';
+import { OutlineItem } from '@/components/dialogs/deck-creation/types';
 import { OllamaClient, ChatMessage } from '@/lib/ollama';
 
 type OutlineGenerationResult = {
@@ -17,8 +17,8 @@ export async function generateOutline(
     console.log("prompt", prompt);
     console.log("model", model);
 
-    // just wait 1s then return pre-defined outline
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // // just wait 1s then return pre-defined outline
+    // await new Promise(resolve => setTimeout(resolve, 1000));
 
     const returnValue = {
         result:
@@ -102,19 +102,15 @@ export async function generateOutline(
 
             // Process partial content to extract any complete objects
             const partialResult = parsePartialOutline(currentContent);
-
-            // Update our result state
-            result = partialResult;
-
             // If callback provided, send the update
             if (onStreamUpdate) {
-                onStreamUpdate(result);
+                onStreamUpdate(partialResult);
             }
 
             // Resolve when done
             if (delta.done) {
                 console.log('Stream completed. Final content:', currentContent);
-                resolve(result);
+                resolve(partialResult);
             }
         };
 

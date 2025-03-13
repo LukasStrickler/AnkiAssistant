@@ -1,6 +1,6 @@
 // Content -> content bad
 
-import { Card } from "../../steps/types";
+import { Card } from "@/components/deck-creation-old/steps/types";
 
 export function checkCardQuality(card: Card) {
     // check if the card is valid

@@ -35,12 +35,12 @@ import {
 } from "./steps";
 import { HelpPanel } from "./steps/input/help-panel";
 import { Separator } from "@/components/ui/separator";
-import { preprocessInput, isValidInput } from "./lib-inferencing/outline/preprocessing";
-import { checkOutlineQuality } from "./lib-inferencing/outline/qualityCheck";
-import { optimizeOutline } from "./lib-inferencing/outline/qualityOptimize";
-import { generateOutline } from "./lib-inferencing/outline/generation";
-import { generateCard } from "./lib-inferencing/cards/generation";
-import { checkCardQuality } from "./lib-inferencing/cards/qualityCheck";
+import { preprocessInput, isValidInput } from "@/lib/deck-creation-inferencing/outline/preprocessing";
+import { checkOutlineQuality } from "@/lib/deck-creation-inferencing/outline/qualityCheck";
+import { optimizeOutline } from "@/lib/deck-creation-inferencing/outline/qualityOptimize";
+import { generateOutline } from "@/lib/deck-creation-inferencing/outline/generation";
+import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
+import { checkCardQuality } from "@/lib/deck-creation-inferencing/cards/qualityCheck";
 import { useModelStore } from "@/stores/model-store";
 import { logger } from "@/lib/logger";
 interface CreateDeckDialogProps {

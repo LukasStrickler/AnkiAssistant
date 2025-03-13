@@ -1,6 +1,6 @@
 // check if the outline is valid
 
-import { OutlineItem } from "../../steps/types";
+import { OutlineItem } from "@/components/deck-creation-old/steps/types";
 
 export async function checkOutlineQuality(outline: OutlineItem[], model: string, prompt: string) {
 

@@ -1,6 +1,6 @@
 // for outline item, generate cards
 
-import { OutlineItem, Card } from "../../steps/types";
+import { OutlineItem, Card } from "@/components/deck-creation-old/steps/types";
 
 export async function generateCard(outlineItem: OutlineItem): Promise<Card> {
     // inference
