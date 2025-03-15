@@ -1,5 +1,4 @@
 import { GenerationSteps, GenerationStep, OutlineItem } from "@/components/dialogs/deck-creation/types";
-import { EditorMode } from "@/hooks/use-deck-creation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 

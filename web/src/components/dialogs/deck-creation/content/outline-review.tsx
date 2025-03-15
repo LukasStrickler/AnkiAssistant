@@ -1,50 +1,49 @@
 import { OutlineItem, GenerationSteps, GenerationStep } from "@/components/dialogs/deck-creation/types";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { DeckCreationHook, EditorMode } from "@/hooks/use-deck-creation";
+import { DeckCreationHook } from "@/hooks/use-deck-creation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import 'katex/dist/katex.min.css';
+import { Separator } from "@/components/ui/separator";
+import { DeckSelector } from "@/components/selectors/deck-selector";
+import { useState } from "react";
 
 function OutlineItemCard(
     {
         outlineItem,
-        setEditor,
-        handleRegenerateCard,
     }: {
         outlineItem: OutlineItem,
-        setEditor: (outlineItem: OutlineItem, editorMode: EditorMode) => void,
-        handleRegenerateCard: (outlineItem: OutlineItem) => void,
     }
 ) {
     if (!outlineItem.card) {
         return null;
     }
 
-    const disableEditCard = outlineItem.status === "pending" || outlineItem.status === "generating";
     return (
         <Card className="mt-4 bg-muted/30">
-            <CardContent className="p-4 space-y-2">
-                <div className="font-medium">Front:</div>
-                <div className="text-sm rounded bg-background p-2">{outlineItem.card.front}</div>
-                <div className="font-medium mt-2">Back:</div>
-                <div className="text-sm rounded bg-background p-2">{outlineItem.card.back}</div>
-                <Button
-                    onClick={() => setEditor(outlineItem, EditorMode.CARD)}
-                    variant="outline"
-                    size="sm"
-                    disabled={disableEditCard}
-                >
-                    Edit Card
-                </Button>
-                <Button
-                    onClick={() => handleRegenerateCard(outlineItem)}
-                    variant="outline"
-                    size="sm"
-                >
-                    Regenerate Card
-                </Button>
+            <CardContent className="p-4">
+                <div className="text-sm rounded-md p-2">
+                    <div className="markdown-content">
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            {outlineItem.card.front}
+                        </ReactMarkdown>
+                    </div>
+                </div>
+                <Separator className="my-2 bg-secondary-foreground/50 rounded-xl p-[1.5px]" />
+                <div className="text-sm rounded-md p-2">
+                    <div className="markdown-content" style={{ marginBottom: "0px" }}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            {outlineItem.card.back}
+                        </ReactMarkdown>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     )
@@ -55,48 +54,79 @@ function OutlineItemAccordion(
         outlineItem,
         setEditor,
         handleRegenerateCard,
-        currentStep
+        currentStep,
+        handleUpdateItemDeck
     }: {
         outlineItem: OutlineItem,
-        setEditor: (outlineItem: OutlineItem, editorMode: EditorMode) => void,
+        setEditor: (outlineItem: OutlineItem) => void,
         handleRegenerateCard: (outlineItem: OutlineItem) => void,
-        currentStep: GenerationStep
+        currentStep: GenerationStep,
+        handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void
     }
 ) {
+    const disableEditCard = outlineItem.status === "pending" || outlineItem.status === "generating";
+
     return (
         <div className="space-y-4">
-            {/* Content Section */}
-            <div className="space-y-3">
-                <div className="flex flex-col gap-1.5">
-                    <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md whitespace-pre-line">{outlineItem.key_points}</p>
-                </div>
+            {/* Deck Selector Section */}
+            <div className="space-y-2">
+                <DeckSelector
+                    value={outlineItem.deck}
+                    onChange={(newDeck: string) => handleUpdateItemDeck(outlineItem, newDeck)}
+                    placeholder="Select or enter deck name"
+                />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2 mt-3">
-                <Button
-                    onClick={() => setEditor(outlineItem, EditorMode.OUTLINE)}
-                    variant="default"
-                    size="sm"
-                    disabled={!(currentStep === GenerationSteps.REVIEWING_OUTLINE
-                        || currentStep === GenerationSteps.REVIEWING_CARDS
-                        || outlineItem.status === "pending" || outlineItem.status === "generating")}
-                >
-                    Edit Item
-                </Button>
+            {/* Content Section */}
+            <div className="space-y-1">
+                {/* <span className="text-muted-foreground">
+                    {outlineItem.deck}
+                </span> */}
+
+                <div className="flex flex-col gap-1.5">
+                    <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">
+                        <div className="markdown-content">
+                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                {outlineItem.key_points}
+                            </ReactMarkdown>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Card Section if available */}
             {outlineItem.card && (
-                <div className="mt-4 pt-4 border-t">
-                    <h3 className="font-medium text-sm mb-2">Card Preview:</h3>
+                <div className="mt-0">
                     <OutlineItemCard
                         outlineItem={outlineItem}
-                        setEditor={setEditor}
-                        handleRegenerateCard={handleRegenerateCard}
                     />
                 </div>
             )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 mt-3">
+                <Button
+                    onClick={() => setEditor(outlineItem)}
+                    variant="default"
+                    size="sm"
+                    // disabled={!(currentStep === GenerationSteps.REVIEWING_OUTLINE
+                    //     || currentStep === GenerationSteps.REVIEWING_CARDS
+                    //     || outlineItem.status === "pending" || outlineItem.status === "generating")}
+
+                    // disable if where are pending or generating this card
+                    disabled={disableEditCard}
+                >
+                    Edit Item
+                </Button>
+                <Button
+                    onClick={() => handleRegenerateCard(outlineItem)}
+                    variant="default"
+                    size="sm"
+                    disabled={disableEditCard || !outlineItem.card}
+                >
+                    Regenerate Card
+                </Button>
+            </div>
         </div>
     )
 }
@@ -106,13 +136,15 @@ function OutlineItemView({
     setEditor,
     selectedEditorOutlineItem,
     handleRegenerateCard,
-    currentStep
+    currentStep,
+    handleUpdateItemDeck
 }: {
     outlineItem: OutlineItem,
-    setEditor: (outlineItem: OutlineItem, editorMode: EditorMode) => void,
+    setEditor: (outlineItem: OutlineItem) => void,
     selectedEditorOutlineItem: OutlineItem | null,
     handleRegenerateCard: (outlineItem: OutlineItem) => void,
-    currentStep: GenerationStep
+    currentStep: GenerationStep,
+    handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void
 }) {
 
     const getStatusText = (status: string) => {
@@ -133,14 +165,10 @@ function OutlineItemView({
             <AccordionTrigger className="px-4 hover:no-underline rounded-lg">
                 <div className="flex flex-col w-full">
                     <div className="font-semibold text-left">{outlineItem.concept}</div>
-                    <div className="flex flex-row text-left">
-                        <div className="text-sm text-muted-foreground">
-                            {outlineItem.status && getStatusText(outlineItem.status)}
-                        </div>
-                        <span className="text-sm text-muted-foreground mx-1">•</span>
-                        <div className="text-sm text-muted-foreground">
-                            {outlineItem.card_type}
-                        </div>
+                    <div className="flex flex-wrap text-left text-sm text-muted-foreground">
+                        <span>{outlineItem.status && getStatusText(outlineItem.status)}</span>
+                        <span className="mx-1">•</span>
+                        <span>{outlineItem.card_type}</span>
                     </div>
                 </div>
             </AccordionTrigger>
@@ -150,6 +178,7 @@ function OutlineItemView({
                     setEditor={setEditor}
                     handleRegenerateCard={handleRegenerateCard}
                     currentStep={currentStep}
+                    handleUpdateItemDeck={handleUpdateItemDeck}
                 />
             </AccordionContent>
         </AccordionItem>
@@ -162,35 +191,56 @@ function OutlineSection(
         setEditor,
         selectedEditorOutlineItem,
         handleRegenerateCard,
-        currentStep
+        currentStep,
+        handleUpdateItemDeck
     }: {
         outlineItems: OutlineItem[],
-        setEditor: (outlineItem: OutlineItem, editorMode: EditorMode) => void,
+        setEditor: (outlineItem: OutlineItem) => void,
         selectedEditorOutlineItem: OutlineItem | null,
         handleRegenerateCard: (outlineItem: OutlineItem) => void,
-        currentStep: GenerationStep
+        currentStep: GenerationStep,
+        handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void
     }
 ) {
+    // State to track which items are open by their ID
+    const [openItems, setOpenItems] = useState<string[]>([]);
 
+    const groupOutlineItemsByDeck = () => {
+        return outlineItems.reduce((acc, item) => {
+            acc[item.deck] = [...(acc[item.deck] || []), item];
+            return acc;
+        }, {} as Record<string, OutlineItem[]>);
+    }
 
     return (
-        <ScrollArea className="w-full h-full bg-zinc-900/70 rounded-lg p-2">
-            <Accordion
-                type="multiple"
-                className="w-full space-y-4 rounded-lg"
-            >
-                {outlineItems.map(item => (
-                    <OutlineItemView
-                        key={item.id}
-                        outlineItem={item}
-                        setEditor={setEditor}
-                        selectedEditorOutlineItem={selectedEditorOutlineItem}
-                        handleRegenerateCard={handleRegenerateCard}
-                        currentStep={currentStep}
-                    />
+        <div className="w-full h-full bg-zinc-900/70 rounded-lg overflow-hidden">
+            <ScrollArea className="w-full h-full p-2">
+                {/* {JSON.stringify(groupOutlineItemsByDeck())} */}
+                {Object.keys(groupOutlineItemsByDeck()).map((deck) => (
+                    <div key={deck}>
+                        <h2 className="text-lg font-bold px-2 py-1">{deck}</h2>
+                        <Accordion
+                            type="multiple"
+                            className="w-full space-y-4 rounded-lg"
+                            value={openItems}
+                            onValueChange={setOpenItems}
+                        >
+                            {groupOutlineItemsByDeck()[deck]?.map(item => (
+                                <OutlineItemView
+                                    key={item.id}
+                                    outlineItem={item}
+                                    setEditor={setEditor}
+                                    selectedEditorOutlineItem={selectedEditorOutlineItem}
+                                    handleRegenerateCard={handleRegenerateCard}
+                                    currentStep={currentStep}
+                                    handleUpdateItemDeck={handleUpdateItemDeck}
+                                />
+                            ))}
+                        </Accordion>
+                    </div>
                 ))}
-            </Accordion>
-        </ScrollArea>
+            </ScrollArea>
+        </div>
     )
 }
 
@@ -203,11 +253,15 @@ export function OutlineReview({ deckCreationHook }: { deckCreationHook: DeckCrea
 
     const handleRegenerateCard = (outlineItem: OutlineItem) => {
         // deckCreationHook.streamFullOutlineGeneration();
+        console.log("Regenerate Card", outlineItem);
+        deckCreationHook.handleGenerateCard(outlineItem, 1);
     }
 
     const handleRegenerateAllCards = () => {
+
         deckCreationHook.handleGenerateAllCards();
     }
+
 
 
     return (
@@ -244,6 +298,7 @@ export function OutlineReview({ deckCreationHook }: { deckCreationHook: DeckCrea
                     selectedEditorOutlineItem={deckCreationHook.selectedEditorOutlineItem}
                     handleRegenerateCard={handleRegenerateCard}
                     currentStep={deckCreationHook.currentStep}
+                    handleUpdateItemDeck={deckCreationHook.handleUpdateItemDeck}
                 />
             </div>
         </div>

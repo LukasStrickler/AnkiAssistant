@@ -16,6 +16,9 @@ import { generateOutline } from "@/lib/deck-creation-inferencing/outline/generat
 import { isValidInput, preprocessInput } from "@/lib/deck-creation-inferencing/outline/preprocessing";
 import { toast } from "./use-toast";
 import { useModelStore } from "@/stores/model-store";
+import { useInferenceStore } from "@/stores/inference-store";
+import { AddPromptData } from "@/stores/inference-store";
+import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
 /**
  * Define types for deck creation data
  */
@@ -24,7 +27,7 @@ export type DeckCreationData = {
     promptId: string;
     selectedNoteVariants: string[];
     outline: OutlineItem[];
-    setDialogOpen: (dialogOpen: boolean) => void;
+    setDialogOpen?: (dialogOpen: boolean) => void;
 };
 
 export type DeckCreationHook = {
@@ -33,26 +36,25 @@ export type DeckCreationHook = {
     updateOutlineItem: (outlineItem: OutlineItem) => void;
     resetData: () => void;
     handleGenerateAllCards: () => void;
+    handleGenerateCard: (outlineItem: OutlineItem, priority?: number) => void;
     handleSaveAllCards: () => void;
     streamFullOutlineGeneration: () => void;
     currentStep: GenerationStep;
     setCurrentStep: (step: GenerationStep) => void;
     currentOutlineLoadingState: OutlineLoadingState;
-    currentCardsLoadingState: CardsLoadingState;
     currentSavingLoadingState: SavingLoadingState;
     selectedEditorOutlineItem: OutlineItem | null;
-    selectedEditorMode: EditorMode;
-    setEditor: (outlineItem: OutlineItem, editorMode: EditorMode) => void;
-    switchEditor: (editorMode: EditorMode) => void;
+    setEditor: (outlineItem: OutlineItem) => void;
     closeEditor: () => void;
     disableSaveAllCards: boolean;
     generationStatus: string;
+    handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void;
 }
 
-export enum EditorMode {
-    OUTLINE = "outline",
-    CARD = "card",
-}
+// export enum EditorMode {
+//     OUTLINE = "outline",
+//     CARD = "card",
+// }
 
 /**
  * Hook for managing deck creation state
@@ -61,14 +63,16 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     const { prompts } = usePromptStore();
     const { variants } = useNoteVariantStore();
     const { overviewModel, contentModel, availableModels } = useModelStore();
+    const { addPrompt } = useInferenceStore();
+
     // Main State
     const [currentStep, _setCurrentStep] = useState<GenerationStep>(GenerationSteps.INPUT);
     const [currentOutlineLoadingState, setCurrentOutlineLoadingState] = useState<OutlineLoadingState>(OutlineLoadingStates.PREPARE);
-    const [currentCardsLoadingState, setCurrentCardsLoadingState] = useState<CardsLoadingState>(CardsLoadingStates.GENERATE);
+    // const [currentCardsLoadingState, setCurrentCardsLoadingState] = useState<CardsLoadingState>(CardsLoadingStates.GENERATE);
     const [currentSavingLoadingState, setCurrentSavingLoadingState] = useState<SavingLoadingState>(SavingLoadingStates.PREPARE);
 
     const [selectedEditorOutlineItem, setSelectedEditorOutlineItem] = useState<OutlineItem | null>(null);
-    const [selectedEditorMode, setSelectedEditorMode] = useState<EditorMode>(EditorMode.OUTLINE);
+    // const [selectedEditorMode, setSelectedEditorMode] = useState<EditorMode>(EditorMode.OUTLINE);
 
     const [disableSaveAllCards, setDisableSaveAllCards] = useState(true);
 
@@ -90,6 +94,32 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         updateData({ outline: data.outline.map(item => item.id === outlineItem.id ? outlineItem : item) });
     }, [data.outline]);
 
+
+    const updateOutlineCard = useCallback((outlineItem: OutlineItem) => {
+        // get the current item from the store
+        const currentItem = data.outline.find(item => item.id === outlineItem.id);
+        if (currentItem) {
+            currentItem.card = outlineItem.card;
+        }
+        updateData({ outline: data.outline });
+    }, [data.outline]);
+
+    const updateOutlineStatus = useCallback((outlineItem: OutlineItem) => {
+        const currentItem = data.outline.find(item => item.id === outlineItem.id);
+        if (currentItem) {
+            currentItem.status = outlineItem.status;
+        }
+        updateData({ outline: data.outline });
+    }, [data.outline]);
+
+    const handleUpdateItemDeck = useCallback((outlineItem: OutlineItem, newDeck: string) => {
+        const currentItem = data.outline.find(item => item.id === outlineItem.id);
+        if (currentItem) {
+            currentItem.deck = newDeck;
+        }
+        updateData({ outline: data.outline });
+    }, [data.outline]);
+
     const setCurrentStep = useCallback((step: GenerationStep) => {
         _setCurrentStep(step);
         resetStates();
@@ -109,31 +139,43 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
 
     const resetStates = useCallback(() => {
         setCurrentOutlineLoadingState(OutlineLoadingStates.PREPARE);
-        setCurrentCardsLoadingState(CardsLoadingStates.GENERATE);
+        // setCurrentCardsLoadingState(CardsLoadingStates.GENERATE);
         setCurrentSavingLoadingState(SavingLoadingStates.PREPARE);
     }, []);
 
-    const setEditor = useCallback((outlineItem: OutlineItem, editorMode: EditorMode) => {
+    const setEditor = useCallback((outlineItem: OutlineItem) => {
         setSelectedEditorOutlineItem(outlineItem);
-        setSelectedEditorMode(editorMode);
     }, []);
 
     const closeEditor = useCallback(() => {
         setSelectedEditorOutlineItem(null);
     }, []);
 
-    const switchEditor = useCallback((editorMode: EditorMode) => {
-        setSelectedEditorMode(editorMode);
-    }, []);
 
     useEffect(() => {
         if (currentStep === GenerationSteps.REVIEWING_CARDS) {
-            const allCardsReviewed = data.outline.every(item => item.status === "card-review");
+            // const allCardsReviewed = data.outline.every(item => item.status === "card-review");
+            // check if all outline items have a card
+            const allCardsReviewed = data.outline.every(item => item.card !== undefined);
             setDisableSaveAllCards(!allCardsReviewed);
         } else {
             setDisableSaveAllCards(true);
         }
-    }, [data.outline, currentStep]);
+    }, [data, currentStep]);
+
+    useEffect(() => {
+        if (currentStep === GenerationSteps.GENERATING_CARDS) {
+            if (data.outline.every(item => item.status !== "generating" && item.status !== "pending")) {
+                setCurrentStep(GenerationSteps.REVIEWING_CARDS);
+            }
+
+            // amount of cards that are done vs total amount of cards
+            const doneCards = data.outline.filter(item => item.status === "card-review").length;
+            const totalCards = data.outline.length;
+            setGenerationStatus(`${doneCards}/${totalCards} cards done`);
+        }
+    }, [data]);
+
 
     // -------------
     // INFERENCE
@@ -206,15 +248,45 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     }
 
 
-    async function handleGenerateAllCards() {
-        setCurrentStep(GenerationSteps.GENERATING_CARDS);
-        // call card creation service
+    function handleGenerateAllCards() {
+        for (const item of data.outline) {
+            // clear the old card
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setCurrentStep(GenerationSteps.REVIEWING_CARDS);
+            if (item.status !== "generating" && item.status !== "pending") {
+                void handleGenerateCard(item);
+            }
+        }
     }
 
+    async function handleGenerateCard(outlineItem: OutlineItem, priority: number = 0) {
+        // Skip if this card is already being generated (status is generating or pending)
+        // This prevents duplicate generation when connection is restored
+        if (outlineItem.status === "generating" || outlineItem.status === "pending") {
+            return;
+        }
+
+        setCurrentStep(GenerationSteps.GENERATING_CARDS);
+        // call card creation service
+        // set the card to undefined
+        updateOutlineCard({
+            ...outlineItem,
+            card: undefined,
+        });
+
+        generateCard(
+            outlineItem,
+            updateOutlineCard,
+            updateOutlineStatus,
+            addPrompt,
+            { contentModel, overviewModel, availableModels },
+            priority,
+        );
+    }
+
+
+
     async function handleSaveAllCards() {
+        //TODO: Add readl logic to save
         setCurrentStep(GenerationSteps.SAVING_DECK);
         // call deck saving service
         // await 1s
@@ -224,9 +296,10 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             description: "Your deck has been saved successfully.",
             variant: "success",
         });
-        data.setDialogOpen(false);
+        data.setDialogOpen?.(false);
         resetData();
     }
+
 
 
     return {
@@ -235,19 +308,18 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         updateOutlineItem,
         resetData,
         handleGenerateAllCards,
+        handleGenerateCard,
         handleSaveAllCards,
         streamFullOutlineGeneration,
         currentStep,
         setCurrentStep,
         currentOutlineLoadingState,
-        currentCardsLoadingState,
         currentSavingLoadingState,
         selectedEditorOutlineItem,
-        selectedEditorMode,
         setEditor,
         closeEditor,
-        switchEditor,
         disableSaveAllCards,
         generationStatus,
+        handleUpdateItemDeck
     };
 }

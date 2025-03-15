@@ -123,6 +123,15 @@
   @apply !text-foreground;
 }
 
+/* this is to prevent the last child from having a margin-bottom */
+.markdown-content> :last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-content>p:last-child {
+  margin-bottom: 0 !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

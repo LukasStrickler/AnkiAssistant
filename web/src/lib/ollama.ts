@@ -113,10 +113,11 @@ export class OllamaClient {
         messages: ChatMessage[],
         model: string,
         options: OllamaOptions,
-        onDelta: (delta: ChatMessageDelta) => void
+        onDelta: (delta: ChatMessageDelta) => void,
+        abortController?: AbortController
     ): Promise<void> {
         try {
-            const response = await fetch(`${this.apiUrl}/api/chat`, {
+            const requestOptions: RequestInit = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -127,7 +128,14 @@ export class OllamaClient {
                     options,
                     stream: true
                 }),
-            });
+            };
+
+            // Add signal to the request if abortController is provided
+            if (abortController) {
+                requestOptions.signal = abortController.signal;
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/chat`, requestOptions);
 
             if (!response.ok) {
                 const errorText = await response.text();
