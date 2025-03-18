@@ -31,7 +31,12 @@ function OutlineItemCard(
             <CardContent className="p-4">
                 <div className="text-sm rounded-md p-2">
                     <div className="markdown-content">
-                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            components={{
+                                p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
+                            }}>
                             {outlineItem.card.front}
                         </ReactMarkdown>
                     </div>
@@ -39,7 +44,12 @@ function OutlineItemCard(
                 <Separator className="my-2 bg-secondary-foreground/50 rounded-xl p-[1.5px]" />
                 <div className="text-sm rounded-md p-2">
                     <div className="markdown-content" style={{ marginBottom: "0px" }}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            components={{
+                                p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
+                            }}>
                             {outlineItem.card.back}
                         </ReactMarkdown>
                     </div>
@@ -86,7 +96,12 @@ function OutlineItemAccordion(
                 <div className="flex flex-col gap-1.5">
                     <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">
                         <div className="markdown-content">
-                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm, remarkMath]}
+                                rehypePlugins={[rehypeKatex]}
+                                components={{
+                                    p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
+                                }}>
                                 {outlineItem.key_points}
                             </ReactMarkdown>
                         </div>

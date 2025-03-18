@@ -207,8 +207,8 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
 
         // TODO: Tim add real logic
         const existingDecks = "'Uni::Sem 5::Economics::Basics::Introduction to Economics', 'Uni::Sem 5::Economics::Basics::Economics::Comparison'"
-        const selectedCardTypes = "'Q&A', 'Definition'"
-        const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"Q&A\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"Definition\"}]"
+        const selectedCardTypes = "'qa-system', 'definition-system'"
+        const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"qa-system\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"definition-system\"}]"
 
 
         const model = overviewModel ?? contentModel ?? availableModels[0];
@@ -249,6 +249,9 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
 
 
     function handleGenerateAllCards() {
+        //reset the open editor
+        closeEditor();
+
         for (const item of data.outline) {
             // clear the old card
 
@@ -261,6 +264,10 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     async function handleGenerateCard(outlineItem: OutlineItem, priority: number = 0) {
         // Skip if this card is already being generated (status is generating or pending)
         // This prevents duplicate generation when connection is restored
+        // if open editor is this card, close it
+        if (selectedEditorOutlineItem?.id === outlineItem.id) {
+            closeEditor();
+        }
         if (outlineItem.status === "generating" || outlineItem.status === "pending") {
             return;
         }

@@ -21,7 +21,7 @@ export interface NoteVariantState {
 
 const DEFAULT_VARIANTS: NoteVariant[] = [
     {
-        id: 'qa-system',
+        id: 'q&a-system',
         name: 'Q&A',
         description: 'Question and answer pairs for testing understanding',
         isSystem: true,
