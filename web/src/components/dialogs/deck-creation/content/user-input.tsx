@@ -163,7 +163,7 @@ export function InputStep({
             "h-full flex flex-col",
             isSubmitting && "opacity-90"
         )}>
-            <h2 className="text-2xl font-bold mb-4">Create Your Deck</h2>
+            <h2 className="text-xl font-bold mb-4">Upload Your Notes</h2>
             <div className="flex-grow flex flex-col min-h-0">
                 <DeckSelectors
                     data={data}

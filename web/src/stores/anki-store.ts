@@ -9,12 +9,14 @@ interface AnkiState {
     isLoading: boolean
     error: string | null
     expandedDecks: Set<string>
+    highlightDecks: boolean
     loadDecks: () => Promise<void>
     selectDeck: (deckPath: string) => void
     refreshDecks: () => Promise<void>
     toggleDeckExpansion: (deckFullName: string) => void
     collapseAllDecks: () => void
     expandAllDecks: () => void
+    setHighlightDecks: (highlight: boolean) => void
 }
 
 type PersistedState = {
@@ -31,6 +33,7 @@ export const useAnkiStore = create<AnkiState>()(
             isLoading: true,
             error: null,
             expandedDecks: new Set<string>(),
+            highlightDecks: false,
             loadDecks: async () => {
                 if (get().decks.length > 0) return
                 return get().refreshDecks()
@@ -74,7 +77,8 @@ export const useAnkiStore = create<AnkiState>()(
                     collectDeckNames(state.decks)
                     return { expandedDecks: allDeckNames }
                 })
-            }
+            },
+            setHighlightDecks: (highlight) => set({ highlightDecks: highlight })
         }),
         {
             name: 'anki-storage',

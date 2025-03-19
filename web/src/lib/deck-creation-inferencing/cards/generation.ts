@@ -22,6 +22,7 @@ export async function generateCard(
     The first model is the overview model, and the second model is the content model.
     You are the second model and are dumber than the first model, do exactly what the first model tells you.
     The front of the card should be a question and the back should be the answer.
+    Do not give giant paragraphs, keep it short and concise.
     Use Markdown formatting for the front and back of the card.
     Use bullet points for the back of the card.
 

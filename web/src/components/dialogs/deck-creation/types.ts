@@ -28,7 +28,6 @@ export const SavingLoadingStates = {
     PREPARE: "Preparing deck for export...",
     CONNECT: "Connecting to Anki...",
     SAVE: "Saving card {current} of {total} to Anki...",
-    FINALIZE: "Finalizing changes..."
 } as const;
 
 export type SavingLoadingState = (typeof SavingLoadingStates)[keyof typeof SavingLoadingStates];
@@ -39,7 +38,7 @@ export interface OutlineItem {
     key_points: string;
     deck: string;
     card_type: string;
-    status: "outline-review" | "pending" | "generating" | "card-review" | "error";
+    status: "outline-review" | "pending" | "generating" | "card-review" | "pending-saving" | "saving" | "saved" | "error";
     error?: string;
     card?: Card;
 }

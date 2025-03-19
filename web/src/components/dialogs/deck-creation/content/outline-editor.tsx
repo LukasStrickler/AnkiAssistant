@@ -16,12 +16,14 @@ function OutlineNavigator({
     handleGenerateAllCards,
     handleSaveAllCards,
     disableSaveAllCards,
+    disableGenerateAllCards,
     generationStatus
 }: {
     currentStep: GenerationStep,
     handleGenerateAllCards: () => void,
     handleSaveAllCards: () => void,
     disableSaveAllCards: boolean,
+    disableGenerateAllCards: boolean,
     generationStatus: string
 }) {
     return (
@@ -31,6 +33,7 @@ function OutlineNavigator({
                     onClick={handleGenerateAllCards}
                     className="w-full"
                     variant="default"
+                    disabled={disableGenerateAllCards}
                 >Generate All Cards</Button>
             )}
             {currentStep === GenerationSteps.REVIEWING_CARDS && (
@@ -254,7 +257,8 @@ export function OutlineEditor(
         handleSaveAllCards,
         disableSaveAllCards,
         updateOutlineItem,
-        generationStatus
+        generationStatus,
+        disableGenerateAllCards
     }: {
         outlineItem: OutlineItem | null,
         closeEditor: () => void,
@@ -263,7 +267,8 @@ export function OutlineEditor(
         handleSaveAllCards: () => void,
         disableSaveAllCards: boolean,
         updateOutlineItem: (outlineItem: OutlineItem) => void,
-        generationStatus: string
+        generationStatus: string,
+        disableGenerateAllCards: boolean
     }) {
 
     if (!outlineItem) {
@@ -281,6 +286,7 @@ export function OutlineEditor(
                         handleGenerateAllCards={handleGenerateAllCards}
                         handleSaveAllCards={handleSaveAllCards}
                         disableSaveAllCards={disableSaveAllCards}
+                        disableGenerateAllCards={disableGenerateAllCards}
                         generationStatus={generationStatus}
                     />
                 </div>
@@ -320,6 +326,7 @@ export function OutlineEditor(
                     handleGenerateAllCards={handleGenerateAllCards}
                     handleSaveAllCards={handleSaveAllCards}
                     disableSaveAllCards={disableSaveAllCards}
+                    disableGenerateAllCards={disableGenerateAllCards}
                     generationStatus={generationStatus}
                 />
             </div>

@@ -43,10 +43,13 @@ export type DeckCreationHook = {
     setCurrentStep: (step: GenerationStep) => void;
     currentOutlineLoadingState: OutlineLoadingState;
     currentSavingLoadingState: SavingLoadingState;
+    savedCount: number;
+    saveTotalCount: number;
     selectedEditorOutlineItem: OutlineItem | null;
     setEditor: (outlineItem: OutlineItem) => void;
     closeEditor: () => void;
     disableSaveAllCards: boolean;
+    disableGenerateAllCards: boolean;
     generationStatus: string;
     handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void;
 }
@@ -70,11 +73,14 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     const [currentOutlineLoadingState, setCurrentOutlineLoadingState] = useState<OutlineLoadingState>(OutlineLoadingStates.PREPARE);
     // const [currentCardsLoadingState, setCurrentCardsLoadingState] = useState<CardsLoadingState>(CardsLoadingStates.GENERATE);
     const [currentSavingLoadingState, setCurrentSavingLoadingState] = useState<SavingLoadingState>(SavingLoadingStates.PREPARE);
+    const [savedCount, setSavedCount] = useState(0);
+    const [saveTotalCount, setSaveTotalCount] = useState(0);
 
     const [selectedEditorOutlineItem, setSelectedEditorOutlineItem] = useState<OutlineItem | null>(null);
     // const [selectedEditorMode, setSelectedEditorMode] = useState<EditorMode>(EditorMode.OUTLINE);
 
     const [disableSaveAllCards, setDisableSaveAllCards] = useState(true);
+    const [disableGenerateAllCards, setDisableGenerateAllCards] = useState(true);
 
     const [generationStatus, setGenerationStatus] = useState<string>("");
 
@@ -134,6 +140,8 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             setDialogOpen: data.setDialogOpen,
         });
         _setCurrentStep(GenerationSteps.INPUT);
+        setSavedCount(0);
+        setSaveTotalCount(0);
         resetStates();
     }, []);
 
@@ -176,6 +184,10 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         }
     }, [data]);
 
+    // Add an effect to manage disableGenerateAllCards based on outline length
+    useEffect(() => {
+        setDisableGenerateAllCards(data.outline.length === 0);
+    }, [data.outline]);
 
     // -------------
     // INFERENCE
@@ -290,14 +302,44 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         );
     }
 
-
-
     async function handleSaveAllCards() {
         //TODO: Add readl logic to save
+        setSavedCount(0);
+        setSaveTotalCount(data.outline.length);
         setCurrentStep(GenerationSteps.SAVING_DECK);
+        setCurrentSavingLoadingState(SavingLoadingStates.PREPARE);
+        // set to save-pending
+        for (const item of data.outline) {
+            updateOutlineStatus({
+                ...item,
+                status: "pending-saving",
+            });
+        }
         // call deck saving service
         // await 1s
         await new Promise(resolve => setTimeout(resolve, 1000));
+        setCurrentSavingLoadingState(SavingLoadingStates.CONNECT);
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCurrentSavingLoadingState(SavingLoadingStates.SAVE);
+
+
+        // fir each item in the outline, set the status to saved
+        for (const item of data.outline) {
+            // set to saving
+            updateOutlineStatus({
+                ...item,
+                status: "saving",
+            });
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // set to saved
+            updateOutlineStatus({
+                ...item,
+                status: "saved",
+            });
+            setSavedCount(savedCount + 1);
+        }
+
         toast({
             title: "Deck saved",
             description: "Your deck has been saved successfully.",
@@ -322,9 +364,12 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         setCurrentStep,
         currentOutlineLoadingState,
         currentSavingLoadingState,
+        savedCount,
+        saveTotalCount,
         selectedEditorOutlineItem,
         setEditor,
         closeEditor,
+        disableGenerateAllCards,
         disableSaveAllCards,
         generationStatus,
         handleUpdateItemDeck

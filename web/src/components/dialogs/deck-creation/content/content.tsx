@@ -8,6 +8,9 @@ import { InputStep } from "./user-input";
 import { DeckCreationHook, useDeckCreation, DeckCreationData } from "@/hooks/use-deck-creation";
 import { OutlineEditor } from "./outline-editor";
 import { OutlineReview } from "./outline-review";
+import { InputHelp } from "./input-help";
+import { Loading } from "./loadings";
+
 function LeftContent(
     {
         deckCreationHook
@@ -29,7 +32,13 @@ function LeftContent(
             />
         case GenerationSteps.GENERATING_OUTLINE:
         case GenerationSteps.SAVING_DECK:
-            return <span>Loading</span>
+            return <Loading
+                step={deckCreationHook.currentStep}
+                outlineLoadingState={deckCreationHook.currentOutlineLoadingState}
+                savingLoadingState={deckCreationHook.currentSavingLoadingState}
+                doneCount={deckCreationHook.savedCount}
+                totalCount={deckCreationHook.saveTotalCount}
+            />
         case GenerationSteps.REVIEWING_OUTLINE:
         case GenerationSteps.REVIEWING_CARDS:
         case GenerationSteps.GENERATING_CARDS:
@@ -42,6 +51,7 @@ function LeftContent(
                 updateOutlineItem={deckCreationHook.updateOutlineItem}
                 disableSaveAllCards={deckCreationHook.disableSaveAllCards}
                 generationStatus={deckCreationHook.generationStatus}
+                disableGenerateAllCards={deckCreationHook.disableGenerateAllCards}
             />
         default:
             return null;
@@ -56,7 +66,7 @@ function RightContent(
     }) {
     switch (deckCreationHook.currentStep) {
         case GenerationSteps.INPUT:
-            return <span>Input</span>
+            return <InputHelp />
         case GenerationSteps.GENERATING_OUTLINE:
         case GenerationSteps.REVIEWING_OUTLINE:
         case GenerationSteps.REVIEWING_CARDS:
@@ -104,7 +114,7 @@ export function DeckCreationContent({
                         deckCreationHook={deckCreationHook}
                     />
                 </div>
-                <Separator orientation="vertical" className="h-full mx-1" />
+                <Separator orientation="vertical" className="h-full mx-1 mt-8" />
                 <div className="flex-1 p-2 overflow-y-auto">
                     <RightContent
                         deckCreationHook={deckCreationHook}
