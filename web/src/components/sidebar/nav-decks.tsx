@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 import {
   SidebarGroup,
@@ -35,20 +36,35 @@ import { useRouter } from "next/navigation";
 import { deckToPath } from "@/app/deck/[...slug]/page";
 import { CreateDeckDialog } from "@/components/deck-creation-old/create-deck-dialog";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
+
 export function NavDecks() {
-  const { decks, refreshDecks, isLoading, collapseAllDecks, expandAllDecks, expandedDecks } = useAnkiStore();
+  const { decks, refreshDecks, isLoading, collapseAllDecks, expandAllDecks, expandedDecks, highlightDecks, setHighlightDecks } = useAnkiStore();
 
   useEffect(() => {
     void refreshDecks();
   }, [refreshDecks]);
+
+  useEffect(() => {
+    if (highlightDecks) {
+      const timer = setTimeout(() => {
+        setHighlightDecks(false);
+      }, 2000); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [highlightDecks, setHighlightDecks]);
 
   const handleCreateDeck = (deckName: string) => {
     void refreshDecks();
   };
 
   return (
-    <SidebarGroup className="flex flex-col h-full group-data-[collapsible=icon]:hidden">
-      <div className="flex justify-between items-center px-2">
+    <SidebarGroup
+      className={cn(
+        "flex flex-col h-full group-data-[collapsible=icon]:hidden pt-0",
+        highlightDecks && "animate-highlight"
+      )}
+    >
+      <div className="flex justify-between items-center pr-2">
         <SidebarGroupLabel>Decks</SidebarGroupLabel>
         <div className="flex items-center gap-1 pr-1">
           <DeckCreationDialogTrigger />
@@ -104,7 +120,7 @@ function DeckItem({ deck }: { deck: DeckTreeNode }) {
   const router = useRouter();
 
   const truncateDeckName = (name: string, level: number) => {
-    const maxLength = 25;
+    const maxLength = 28;
     const indentWidth = 2.5;
     const availableLength = maxLength - level * indentWidth;
 

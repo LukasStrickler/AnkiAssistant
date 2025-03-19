@@ -25,7 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <a href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
                   <WalletCardsIcon className="size-6" />
                 </div>
@@ -47,11 +47,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <NavMain />
         </div>
         <Separator className="mx-auto py-0.5 rounded-xl max-w-[90%]" />
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 mt-1">
           <NavDecks />
         </div>
       </SidebarContent>
-      <SidebarFooter className="pb-0 gap-0">
+      <SidebarFooter className="pb-0 gap-0 pt-1">
         <NavConnection />
       </SidebarFooter>
     </Sidebar>

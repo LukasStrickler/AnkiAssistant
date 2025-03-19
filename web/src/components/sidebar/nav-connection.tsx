@@ -178,7 +178,8 @@ export function NavConnection({
               <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${menuOpen ? '' : '-rotate-90'}`} />
               <span className="sr-only">Toggle Menu</span>
             </button>
-            <CardTitle className="text-sm text-muted-foreground">
+
+            <CardTitle className="text-sm text-muted-foreground flex items-center justify-center relative" style={{ top: "-4px" }}>
               <div className="flex justify-center items-center space-x-2">
                 <div className="flex items-center">
                   {ollamaStatus === 'loading' ?
