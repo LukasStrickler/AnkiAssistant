@@ -19,6 +19,7 @@ import { useModelStore } from "@/stores/model-store";
 import { useInferenceStore } from "@/stores/inference-store";
 import { AddPromptData } from "@/stores/inference-store";
 import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
+import { ankiClient } from "@/lib/anki";
 /**
  * Define types for deck creation data
  */
@@ -196,6 +197,8 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     // Outline
     async function streamFullOutlineGeneration() {
         updateData({ outline: [] });
+        // reset edit item
+        setSelectedEditorOutlineItem(null);
 
         setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
         setCurrentOutlineLoadingState(OutlineLoadingStates.PREPARE);
@@ -331,6 +334,8 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
                 ...item,
                 status: "saving",
             });
+            await ankiClient.addCardFromOutline(item);
+
             await new Promise(resolve => setTimeout(resolve, 1000));
             // set to saved
             updateOutlineStatus({

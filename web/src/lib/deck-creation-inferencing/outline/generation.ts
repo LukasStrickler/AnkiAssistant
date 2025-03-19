@@ -262,13 +262,17 @@ function processObjectText(
     try {
         const cleanedText = cleanJsonText(objectText);
         const parsedObject = JSON.parse(cleanedText);
+        // lower case all keys
+        const lowerCaseObject = Object.fromEntries(
+            Object.entries(parsedObject).map(([key, value]) => [key.toLowerCase(), value])
+        );
 
-        if (hasAllRequiredFields(parsedObject)) {
+        if (hasAllRequiredFields(lowerCaseObject)) {
             // Valid complete item
-            result.result.push(createOutlineItem(parsedObject, index));
+            result.result.push(createOutlineItem(lowerCaseObject, index));
         } else {
             // Has some fields but not all
-            result.ItemsWithMissingJsonFields.push(parsedObject);
+            result.ItemsWithMissingJsonFields.push(lowerCaseObject);
         }
         return; // RETURN IF SUCCESSFULLY PARSED
     } catch (e) {
@@ -283,9 +287,13 @@ function processObjectText(
     if (hasAllFieldNames) {
         // Try to extract values with regex
         const extractedFields = extractFieldValuesWithRegex(objectText);
+        // lower case all keys
+        const lowerCaseExtractedFields = Object.fromEntries(
+            Object.entries(extractedFields).map(([key, value]) => [key.toLowerCase(), value])
+        );
 
-        if (hasAllRequiredFields(extractedFields)) {
-            result.result.push(createOutlineItem(extractedFields, index));
+        if (hasAllRequiredFields(lowerCaseExtractedFields)) {
+            result.result.push(createOutlineItem(lowerCaseExtractedFields, index));
         } else {
             result.ItemsWithMissingJsonFields.push({ partial: objectText });
         }

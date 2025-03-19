@@ -13,23 +13,63 @@ export async function generateCard(
     // Instead of using hooks, we receive the needed values as parameters
 
     let prompt = `
+    IMPORTANT: CREATE EXACTLY ONE (1) CARD, NO MORE AND NO LESS.
+    Even if the content is extensive, synthesize it into a single, comprehensive card.
+
     Create a json object in the following format:
     {
         "front": "string",
         "back": "string"
     }
 
-    The first model is the overview model, and the second model is the content model.
-    You are the second model and are dumber than the first model, do exactly what the first model tells you.
-    The front of the card should be a question and the back should be the answer.
-    Do not give giant paragraphs, keep it short and concise.
-    Use Markdown formatting for the front and back of the card.
-    Use bullet points for the back of the card.
+    You are tasked with creating ONE high-quality Anki flashcard following these principles:
 
-    The card should be about the following concept:
+    CARD CREATION RULES:
+    1. Front (Question) Guidelines:
+       - Create ONE focused question that covers the main concept
+       - The question should be broad enough to encompass the key points
+       - Use clear, unambiguous language
+       - Include enough context to make the question meaningful
+       - Prefer "why/how" questions that allow comprehensive answers
+
+    2. Back (Answer) Guidelines:
+       - Include all relevant key points in a structured manner
+       - Use bullet points to organize multiple pieces of information
+       - Keep the structure clear even with more content
+       - Use sub-bullets if needed to organize related information
+       - Include examples when they clarify the concept
+
+    3. Formatting Requirements:
+       - Use Markdown and LaTeX formatting
+       - For inline math, use single $ (e.g., $x = y + z$)
+       - For block math, use double $$ (e.g., $$\\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$)
+       - Use **bold** for emphasis on key terms
+       - Use \`code blocks\` for technical terms or syntax
+       - Use bullet points (•) for lists
+       - Use > for important quotes or definitions
+       - Use nested bullets (indentation) for hierarchical information
+       - LaTeX commands must be properly escaped (use \\\\ instead of \\)
+
+    4. Quality Standards:
+       - Create ONE comprehensive card that covers the concept
+       - Ensure all key points are included in this single card
+       - Make the answer thorough but organized
+       - Use precise language
+       - Structure complex information clearly
+       - Ensure all LaTeX expressions are properly formatted
+
+    Create ONE card about this concept:
     ${outlineItem.concept}
-    and the following key points:
+
+    Include these key points in the SAME card:
     ${outlineItem.key_points}
+
+    Remember:
+    - Create EXACTLY ONE card
+    - Include ALL key points in this single card
+    - Structure the information clearly if extensive
+    - Use proper markdown and LaTeX formatting
+    - Escape LaTeX commands properly
     `
 
     // Use the passed models
@@ -118,10 +158,27 @@ function parseCardResult(result: string): Card | string {
     console.log("json_result", json_result);
 
     if (json_result) {
-        return JSON.parse(json_result[0]);
+        try {
+            return JSON.parse(json_result[0]);
+        } catch (e) {
+            console.error("Failed to parse card:", e);
+            return result;
+        }
     }
 
     return result;
+}
 
+function processMarkdownAndLatex(content: string): string {
+    // Replace LaTeX delimiters with Anki-compatible format
+    content = content
+        // Inline math: $...$ -> \\(...\\)
+        .replace(/\$([^$]+)\$/g, '\\\\($1\\\\)')
+        // Block math: $$...$$ -> \\[...\\]
+        .replace(/\$\$([^$]+)\$\$/g, '\\\\[$1\\\\]');
+
+    // TODO: Add markdown-it or other markdown processor here
+    // For now, return the content with LaTeX processed
+    return content;
 }
 

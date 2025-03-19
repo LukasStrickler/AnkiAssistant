@@ -34,7 +34,6 @@ import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { deckToPath } from "@/app/deck/[...slug]/page";
-import { CreateDeckDialog } from "@/components/deck-creation-old/create-deck-dialog";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
 
 export function NavDecks() {
@@ -68,7 +67,6 @@ export function NavDecks() {
         <SidebarGroupLabel>Decks</SidebarGroupLabel>
         <div className="flex items-center gap-1 pr-1">
           <DeckCreationDialogTrigger />
-          <CreateDeckDialog onCreateDeck={handleCreateDeck} />
           {expandedDecks.size > 0 ? (
             <Button
               variant="ghost"

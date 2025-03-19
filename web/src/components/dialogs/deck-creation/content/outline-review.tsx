@@ -14,7 +14,7 @@ import 'katex/dist/katex.min.css';
 import { Separator } from "@/components/ui/separator";
 import { DeckSelector } from "@/components/selectors/deck-selector";
 import { useState } from "react";
-
+import { convertMarkdownToAnkiHTML } from "@/lib/anki";
 function OutlineItemCard(
     {
         outlineItem,
@@ -30,28 +30,28 @@ function OutlineItemCard(
         <Card className="mt-4 bg-muted/30">
             <CardContent className="p-4">
                 <div className="text-sm rounded-md p-2">
-                    <div className="markdown-content">
-                        <ReactMarkdown
+                    <div className="markdown-content" dangerouslySetInnerHTML={{ __html: convertMarkdownToAnkiHTML(outlineItem.card.front) }}>
+                        {/* <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkMath]}
                             rehypePlugins={[rehypeKatex]}
                             components={{
                                 p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
                             }}>
                             {outlineItem.card.front}
-                        </ReactMarkdown>
+                        </ReactMarkdown> */}
                     </div>
                 </div>
                 <Separator className="my-2 bg-secondary-foreground/50 rounded-xl p-[1.5px]" />
                 <div className="text-sm rounded-md p-2">
-                    <div className="markdown-content" style={{ marginBottom: "0px" }}>
-                        <ReactMarkdown
+                    <div className="markdown-content" style={{ marginBottom: "0px" }} dangerouslySetInnerHTML={{ __html: convertMarkdownToAnkiHTML(outlineItem.card.back) }}>
+                        {/* <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkMath]}
                             rehypePlugins={[rehypeKatex]}
                             components={{
                                 p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
                             }}>
                             {outlineItem.card.back}
-                        </ReactMarkdown>
+                        </ReactMarkdown> */}
                     </div>
                 </div>
             </CardContent>
@@ -74,7 +74,12 @@ function OutlineItemAccordion(
         handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void
     }
 ) {
-    const disableEditCard = outlineItem.status === "pending" || outlineItem.status === "generating";
+    const disableRegenerateCard = outlineItem.status === "pending" || outlineItem.status === "generating";
+
+    const disableEditCard = outlineItem.status === "pending" ||
+        outlineItem.status === "generating" ||
+        (currentStep !== GenerationSteps.REVIEWING_OUTLINE && currentStep !== GenerationSteps.REVIEWING_CARDS);
+
 
     return (
         <div className="space-y-4">
@@ -137,7 +142,7 @@ function OutlineItemAccordion(
                     onClick={() => handleRegenerateCard(outlineItem)}
                     variant="default"
                     size="sm"
-                    disabled={disableEditCard || !outlineItem.card}
+                    disabled={disableRegenerateCard || !outlineItem.card}
                 >
                     Regenerate Card
                 </Button>

@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useRef, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useNoteVariantStore } from "@/stores/note-variant-store";
-import { NoteVariantSelector } from "@/components/deck-creation-old/note-variant-selector";
+import { NoteVariantSelector } from "@/components/selectors/note-variant";
 
 function OutlineNavigator({
     currentStep,

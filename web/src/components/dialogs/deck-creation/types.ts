@@ -25,7 +25,7 @@ export const CardsLoadingStates = {
 export type CardsLoadingState = (typeof CardsLoadingStates)[keyof typeof CardsLoadingStates];
 
 export const SavingLoadingStates = {
-    PREPARE: "Preparing deck for export...",
+    PREPARE: "Preparing cards for export...",
     CONNECT: "Connecting to Anki...",
     SAVE: "Saving card {current} of {total} to Anki...",
 } as const;
