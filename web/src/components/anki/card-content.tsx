@@ -31,7 +31,7 @@ export function CardContent({ card }: { card: AnkiCard }) {
 
     // Add fade-in transition when content loads
     useEffect(() => {
-        if (card.fields.Front.value && card.fields.Back.value) {
+        if (card.fields.Front && card.fields.Back) {
             setIsLoaded(true);
         }
     }, [card]);
@@ -48,19 +48,19 @@ export function CardContent({ card }: { card: AnkiCard }) {
             if (front) front.querySelectorAll('.katex').forEach(el => el.remove());
             if (back) back.querySelectorAll('.katex').forEach(el => el.remove());
         };
-    }, [card.fields.Front.value, card.fields.Back.value, katexConfig]);
+    }, [card.fields.Front, card.fields.Back, katexConfig]);
 
     return <div className={`p-4 border rounded-lg rounded-xl transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div ref={frontRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
-            {card.fields.Front.value ?
-                <div dangerouslySetInnerHTML={{ __html: card.fields.Front.value }} /> :
+            {card.fields.Front ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Front }} /> :
                 <FieldSkeleton />
             }
         </div>
         <Separator orientation="horizontal" className="my-1" />
         <div ref={backRef} className="[&_ul]:list-disc [&_ul]:pl-6 [&_li]:mb-2">
-            {card.fields.Back.value ?
-                <div dangerouslySetInnerHTML={{ __html: card.fields.Back.value }} /> :
+            {card.fields.Back ?
+                <div dangerouslySetInnerHTML={{ __html: card.fields.Back }} /> :
                 <FieldSkeleton />
             }
         </div>
