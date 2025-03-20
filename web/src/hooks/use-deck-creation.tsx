@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, use } from "react";
 import {
     CardsLoadingStates,
     CardsLoadingState,
@@ -19,7 +19,8 @@ import { useModelStore } from "@/stores/model-store";
 import { useInferenceStore } from "@/stores/inference-store";
 import { AddPromptData } from "@/stores/inference-store";
 import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
-import { ankiClient } from "@/lib/anki";
+import { ankiClient, DeckTreeNode } from "@/lib/anki";
+import { useAnkiStore } from "@/stores/anki-store";
 /**
  * Define types for deck creation data
  */
@@ -68,6 +69,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     const { variants } = useNoteVariantStore();
     const { overviewModel, contentModel, availableModels } = useModelStore();
     const { addPrompt } = useInferenceStore();
+    const { decks } = useAnkiStore();
 
     // Main State
     const [currentStep, _setCurrentStep] = useState<GenerationStep>(GenerationSteps.INPUT);
@@ -220,11 +222,100 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return;
         }
 
-        // TODO: Tim add real logic
-        const existingDecks = "'Uni::Sem 5::Economics::Basics::Introduction to Economics', 'Uni::Sem 5::Economics::Basics::Economics::Comparison'"
-        const selectedCardTypes = "'qa-system', 'definition-system'"
-        const exampleOutput = "[{\"concept\":\"Introduction to Economics\",\"key_points\":\"Economics studies how individuals, businesses, and governments allocate resources.\",\"deck\":\"Uni::Sem 5::Economics::Basics::Introduction to Economics\",\"card_type\":\"qa-system\"},{\"concept\":\"Micro vs. Macro Economics\",\"key_points\":\"Microeconomics focuses on individual decision-making (supply and demand), while Macroeconomics deals with large-scale economic factors (GDP, inflation).\",\"deck\":\"Uni::Sem 5::Economics::Basics::Economics::Comparison\",\"card_type\":\"definition-system\"}]"
 
+        const rules = `
+        1. **Keep it Simple**: Short and simple ideas are easier to remember.
+        2. **Focus on Single Ideas**: Each card should focus on one concept only.
+        3. **Be Specific**: Vague or general knowledge is harder to retain.
+        4. **Use Markdown**: Format the back of the card using markdown.
+        5. **Strictly One Card Per Concept**: Do NOT generate more than one card per concept.
+        6. **Card Type**: Each card must have a type. Examples: ${data.selectedNoteVariants.join(', ')}.
+        7. **Deck Naming Format**: Deck names must follow a hierarchical structure using '::' as separator:
+           - Start with the highest category (e.g., 'Uni')
+           - Follow with sub-categories (e.g., semester, subject, topic)
+           - End with the specific concept name
+           - Example structure: 'Category::Subcategory::Subject::Topic::Concept'
+           - Real examples: 
+             * 'Uni::Sem 1::Math::Calculus::Derivatives'
+             * 'Work::Programming::Python::Basics::List Comprehension'
+             * 'Personal::Languages::Japanese::Grammar::Particles'
+           Choose or create an appropriate hierarchy based on the content.
+        8. Always use a single string for all the keys in the json object`;
+
+        // TODO: Tim add real logic
+        const getAllDeckNames = (nodes: DeckTreeNode[]): string[] => {
+            return nodes.reduce((names: string[], node) => {
+                names.push(node.fullName);
+                if (node.children.length > 0) {
+                    names.push(...getAllDeckNames(node.children));
+                }
+                return names;
+            }, []);
+        };
+
+        const existingDecks = getAllDeckNames(decks)
+            .map(deck => `'${deck}'`)
+            .join(', ');
+        
+        // Get the selected variants from the store and format them as a string
+        const selectedCardTypes = data.selectedNoteVariants
+            .map(id => `'${id}'`)
+            .join(', ');
+
+        const allExamples = [
+            {
+                "concept": "Introduction to Economics",
+                "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
+                "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+                "card_type": "q&a-system"
+            },
+            {
+                "concept": "Law of Supply and Demand",
+                "key_points": "The price of a good is determined by its supply and demand in the market.",
+                "deck": "Uni::Sem 5::Economics::Basics::Law of Supply and Demand",
+                "card_type": "concept-system"
+            },
+            {
+                "concept": "Market Structure Types",
+                "key_points": "Markets can be classified into four structures: Perfect Competition, Monopoly, Oligopoly, and Monopolistic Competition.",
+                "deck": "Uni::Sem 5::Economics::Basics::Market Structures",
+                "card_type": "overview-system"
+            },
+            {
+                "concept": "Inflation",
+                "key_points": "Inflation is the rate at which the general level of prices for goods and services rises.",
+                "deck": "Uni::Sem 5::Economics::Basics::Inflation",
+                "card_type": "definition-system"
+            },
+            {
+                "concept": "Economic Terms: GDP",
+                "key_points": "Gross Domestic Product (GDP) - The total monetary value of all finished goods and services produced within a country's borders in a specific time period.",
+                "deck": "Uni::Sem 5::Economics::Basics::Terminology",
+                "card_type": "vocabulary-system"
+            },
+            {
+                "concept": "Supply Chain Components",
+                "key_points": "A supply chain consists of suppliers, manufacturers, distributors, retailers, and end consumers working together to deliver products.",
+                "deck": "Uni::Sem 5::Economics::Basics::Supply Chain",
+                "card_type": "concept-system"
+            },
+            {
+                "concept": "Economic Systems Overview",
+                "key_points": "The main economic systems include market economy, command economy, and mixed economy, each with distinct characteristics in resource allocation.",
+                "deck": "Uni::Sem 5::Economics::Basics::Economic Systems",
+                "card_type": "overview-system"
+            }
+        ];
+
+        // Filter examples to only include selected note types
+        const filteredExamples = allExamples.filter(example => 
+            data.selectedNoteVariants.includes(example.card_type)
+        );
+
+        // Use at most 3 examples to keep the prompt concise
+        const selectedExamples = filteredExamples;
+
+        const exampleOutput = JSON.stringify(selectedExamples);
 
         const model = overviewModel ?? contentModel ?? availableModels[0];
         if (!model) {
@@ -237,15 +328,22 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return;
         }
 
+        console.log("existingDecks", existingDecks);
+        console.log("selectedCardTypes", selectedCardTypes);
+
         const totalPrompt = prompt.systemMessage
             .replace("{existingDecks}", existingDecks)
             .replace("{selectedCardTypes}", selectedCardTypes)
             .replace("{userInput}", userInputContentProcessed)
-            .replace("{exampleOutput}", exampleOutput);
+            .replace("{exampleOutput}", exampleOutput)
+            .replace("{rules}", rules);
 
+
+        console.log("totalPrompt", totalPrompt);
 
         setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
         await generateOutline(model, totalPrompt, (update) => {
+            //print the prompt
             updateData({ outline: update.result });
         });
 
