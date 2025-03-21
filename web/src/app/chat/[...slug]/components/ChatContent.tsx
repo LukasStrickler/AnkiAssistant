@@ -7,7 +7,6 @@ import { useModelStore } from "@/stores/model-store";
 import { ollamaClient } from "@/lib/ollama";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
 import { logger } from "@/lib/logger";

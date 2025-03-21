@@ -1,6 +1,7 @@
 // Import the OutlineItem type
-import { OutlineItem } from '@/components/dialogs/deck-creation/types';
-import { OllamaClient, ChatMessage } from '@/lib/ollama';
+import { type OutlineItem } from '@/components/dialogs/deck-creation/types';
+import { OllamaClient, type ChatMessage } from '@/lib/ollama';
+import { logger } from "better-auth";
 
 type OutlineGenerationResult = {
     result: OutlineItem[];
@@ -14,8 +15,8 @@ export async function generateOutline(
     prompt: string,
     onStreamUpdate?: StreamCallback
 ): Promise<OutlineGenerationResult> {
-    console.log("prompt", prompt);
-    console.log("model", model);
+    logger.info("prompt", prompt);
+    logger.info("model", model);
 
     // // just wait 1s then return pre-defined outline
     // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -109,7 +110,7 @@ export async function generateOutline(
 
             // Resolve when done
             if (delta.done) {
-                console.log('Stream completed. Final content:', currentContent);
+                logger.info('Stream completed. Final content:', currentContent);
                 resolve(partialResult);
             }
         };
@@ -121,7 +122,7 @@ export async function generateOutline(
             { temperature: 0.7 },  // Moderate temperature for creative but coherent output
             handleDelta
         ).catch(error => {
-            console.error("Error streaming from Ollama:", error);
+            logger.error("Error streaming from Ollama:", error);
             // If there's an error, resolve with what we have so far or an empty result
             resolve(result);
         });
@@ -229,7 +230,7 @@ export function parsePartialOutline(content: string): OutlineGenerationResult {
             processObjectText(objectText, index, result);
         });
     } catch (e) {
-        console.error("Error parsing outline:", e);
+        logger.error("Error parsing outline:", e);
     }
 
     return result;
@@ -275,7 +276,7 @@ function processObjectText(
             result.ItemsWithMissingJsonFields.push(lowerCaseObject);
         }
         return; // RETURN IF SUCCESSFULLY PARSED
-    } catch (e) {
+    } catch {
         // JSON parsing failed, try regex approach
     }
 

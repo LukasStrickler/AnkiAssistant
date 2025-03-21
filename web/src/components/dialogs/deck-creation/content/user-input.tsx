@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import { SystemPromptSelector } from "@/components/selectors/system-prompt";
 import { NoteVariantSelector } from "@/components/selectors/note-variant";
 import { logger } from "@/lib/logger";
-import { DeckCreationData } from "@/hooks/use-deck-creation";
+import { type DeckCreationData } from "@/hooks/use-deck-creation";
 /**
  * Custom hook to handle markdown file uploads and pastes
  */
@@ -155,26 +155,22 @@ export function InputStep({
     onSubmit,
 }: InputStepProps) {
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const disableSubmit = !data.userInput || isSubmitting;
+    const disableSubmit = !data.userInput
 
     return (
         <div className={cn(
             "h-full flex flex-col",
-            isSubmitting && "opacity-90"
         )}>
             <h2 className="text-xl font-bold mb-4">Upload Your Notes</h2>
             <div className="flex-grow flex flex-col min-h-0">
                 <DeckSelectors
                     data={data}
                     onChange={onChange}
-                    disabled={isSubmitting}
                 />
 
                 <MarkdownInput
                     data={data}
                     onChange={onChange}
-                    disabled={isSubmitting}
                 />
 
                 <SubmitButton

@@ -137,8 +137,8 @@ export const AssistantMessage = ({ message }: { message: Message }) => {
 
                 <div
                     ref={hoverContentRef}
-                    className={`absolute left-0 transform translate-y-[90%] -mt-[40px] min-w-full z-50 bg-background rounded-md shadow-md 
-                    transition-all duration-300 ease-in-out ${isHovering ? 'opacity-100 translate-y-[90%]' : 'opacity-0 translate-y-full pointer-events-none'}`}
+                    className={`absolute left-0 transform translate-y-[112.5%] -mt-[40px] min-w-full z-50 bg-background rounded-md shadow-md 
+                    transition-all duration-300 ease-in-out ${isHovering ? 'opacity-100 translate-y-[112.5%]' : 'opacity-0 translate-y-full pointer-events-none'}`}
                 >
                     <div className="flex flex-col w-full">
                         <div className="flex items-center justify-start h-8 gap-2 px-0 w-full">

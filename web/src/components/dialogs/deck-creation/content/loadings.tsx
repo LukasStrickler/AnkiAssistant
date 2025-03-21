@@ -1,4 +1,4 @@
-import { type GenerationStep, GenerationSteps, OutlineLoadingState, OutlineLoadingStates, SavingLoadingState, SavingLoadingStates } from "../types";
+import { type GenerationStep, GenerationSteps, type OutlineLoadingState, OutlineLoadingStates, type SavingLoadingState, SavingLoadingStates } from "@/components/dialogs/deck-creation/types";
 import { Loader2 } from "lucide-react";
 
 interface LoadingProps {

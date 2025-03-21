@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { OllamaClient, ChatMessage } from '@/lib/ollama';
+import { OllamaClient, type ChatMessage } from '@/lib/ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { type ConnectionStatus } from '@/types/connection-status';
 import { logger } from '@/lib/logger';
@@ -391,7 +391,7 @@ export const useInferenceStore = create<InferenceState>()(
                 const nextPrompt = state.prompts[nextPendingIndex];
                 if (nextPrompt) {
                     logger.info(`Starting initial prompt execution: ${nextPrompt.id} (primary)`);
-                    get().executePrompt(nextPrompt.id);
+                    void get().executePrompt(nextPrompt.id);
 
                     // Only check for a concurrent second prompt if:
                     // 1. We have capacity (currentlyExecuting < 2)
@@ -405,7 +405,7 @@ export const useInferenceStore = create<InferenceState>()(
                             secondNextPrompt.status === InferencePromptStatus.Pending &&
                             secondNextPrompt.concurrency === true) {
                             logger.info(`Starting concurrent prompt execution from start: ${secondNextPrompt.id} (secondary, concurrency=${secondNextPrompt.concurrency})`);
-                            get().executePrompt(secondNextPrompt.id);
+                            void get().executePrompt(secondNextPrompt.id);
                         } else if (secondNextPrompt) {
                             logger.info(`Skipping concurrent execution in start for prompt: ${secondNextPrompt.id} (concurrency=${secondNextPrompt?.concurrency})`);
                         }
@@ -458,17 +458,17 @@ export const useInferenceStore = create<InferenceState>()(
                 // Update prompt to connection-waiting
                 get().updatePrompt(promptId, {
                     status: InferencePromptStatus.ConnectionWaiting,
-                    connectionRetries: (prompt.connectionRetries || 0) + 1,
+                    connectionRetries: (prompt.connectionRetries ?? 0) + 1,
                 });
 
                 if (prompt.updateStatusFn) {
                     prompt.updateStatusFn(InferencePromptStatus.ConnectionWaiting);
                 }
 
-                logger.info(`Prompt ${promptId} waiting for connection. Retry: ${(prompt.connectionRetries || 0) + 1}/${MAX_CONNECTION_RETRIES}`);
+                logger.info(`Prompt ${promptId} waiting for connection. Retry: ${(prompt.connectionRetries ?? 0) + 1}/${MAX_CONNECTION_RETRIES}`);
 
                 // If we've exceeded max retries, fail the prompt
-                if ((prompt.connectionRetries || 0) + 1 >= MAX_CONNECTION_RETRIES) {
+                if ((prompt.connectionRetries ?? 0) + 1 >= MAX_CONNECTION_RETRIES) {
                     get().updatePrompt(promptId, {
                         status: InferencePromptStatus.Error,
                         errorMessage: `Connection failed after ${MAX_CONNECTION_RETRIES} attempts`
@@ -562,7 +562,7 @@ export const useInferenceStore = create<InferenceState>()(
                     // Move prompt back to connection-waiting
                     get().updatePrompt(promptId, {
                         status: InferencePromptStatus.ConnectionWaiting,
-                        connectionRetries: (prompt.connectionRetries || 0) + 1,
+                        connectionRetries: (prompt.connectionRetries ?? 0) + 1,
                         errorMessage: error.message
                     });
 
@@ -574,7 +574,7 @@ export const useInferenceStore = create<InferenceState>()(
                     set({ connectionStatus: 'disconnected' });
 
                     // If we've exceeded max retries, fail the prompt
-                    if ((prompt.connectionRetries || 0) + 1 >= MAX_CONNECTION_RETRIES) {
+                    if ((prompt.connectionRetries ?? 0) + 1 >= MAX_CONNECTION_RETRIES) {
                         get().updatePrompt(promptId, {
                             status: InferencePromptStatus.Error,
                             errorMessage: `Connection failed after ${MAX_CONNECTION_RETRIES} attempts: ${error.message}`
@@ -660,7 +660,7 @@ function processNextPromptsSafely() {
                 const nextPrompt = pendingPrompts[0]; // Already ordered by priority
                 if (nextPrompt) {
                     logger.info(`Starting prompt execution: ${nextPrompt.id} (primary)`);
-                    store.executePrompt(nextPrompt.id);
+                    void store.executePrompt(nextPrompt.id);
                 }
 
                 // If we have enough capacity and the next prompt allows concurrency, execute it too
@@ -671,7 +671,7 @@ function processNextPromptsSafely() {
                     // Explicitly check the concurrency flag is true (not just truthy)
                     if (secondNextPrompt && secondNextPrompt.concurrency === true) {
                         logger.info(`Starting concurrent prompt execution: ${secondNextPrompt.id} (secondary, concurrency=${secondNextPrompt.concurrency})`);
-                        store.executePrompt(secondNextPrompt.id);
+                        void store.executePrompt(secondNextPrompt.id);
                     } else if (secondNextPrompt) {
                         logger.info(`Skipping concurrent execution for prompt: ${secondNextPrompt.id} (concurrency=${secondNextPrompt.concurrency})`);
                     }

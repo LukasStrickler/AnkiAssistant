@@ -1,22 +1,22 @@
-import { OutlineItem } from "@/components/dialogs/deck-creation/types";
-import { Card } from "@/components/dialogs/deck-creation/types";
-import { AddPromptData, InferencePromptStatus } from "@/stores/inference-store";
+import { type OutlineItem } from "@/components/dialogs/deck-creation/types";
+import { type Card } from "@/components/dialogs/deck-creation/types";
+import { type AddPromptData, type InferencePromptStatus } from "@/stores/inference-store";
 import { useNoteVariantStore } from "@/stores/note-variant-store";
-
+import { logger } from "better-auth";
 export async function generateCard(
     outlineItem: OutlineItem,
     updateOutlineCard: (outlineItem: OutlineItem) => void,
     updateOutlineStatus: (outlineItem: OutlineItem) => void,
     addPrompt: (promptData: AddPromptData) => void,
     models: { contentModel?: string, overviewModel?: string, availableModels: string[] },
-    priority: number = 0,
+    priority = 0,
 ) {
     // Get the prompt hint from the note variant store
     const { variants } = useNoteVariantStore.getState();
     const variant = variants.find(v => v.id === outlineItem.card_type);
     const promptHint = variant?.promptHint ?? "Create a comprehensive card that effectively teaches the concept";
 
-    let prompt = `
+    const prompt = `
     IMPORTANT: CREATE EXACTLY ONE (1) CARD, NO MORE AND NO LESS.
     Even if the content is extensive, synthesize it into a single, comprehensive card.
 
@@ -86,8 +86,8 @@ export async function generateCard(
     `
 
     // Log the prompt for debugging
-    console.log('Generating card for concept:', outlineItem.concept);
-    console.log('Card prompt:', prompt);
+    logger.info('Generating card for concept:', outlineItem.concept);
+    logger.info('Card prompt:', prompt);
 
     // Use the passed models
     const selectedModel = models.contentModel ?? models.overviewModel ?? models.availableModels[0] ?? "";
@@ -181,14 +181,14 @@ export function parseCardResult(result: string): Card | string {
             }
         }
     } catch (e) {
-        console.log("Direct JSON parsing failed:", e);
+        logger.error("Direct JSON parsing failed:", e);
     }
 
     // Approach 2: Try regex extraction with improved pattern
     try {
         const frontMatch = result.match(/"front"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/);
         const backMatch = result.match(/"back"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/);
-        
+
         if (frontMatch && backMatch) {
             const card = {
                 front: frontMatch[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\/g, '').trim() ?? '',
@@ -199,12 +199,12 @@ export function parseCardResult(result: string): Card | string {
             }
         }
     } catch (e) {
-        console.log("Regex extraction failed:", e);
+        logger.error("Regex extraction failed:", e);
     }
 
     // If both approaches fail, return the original result
-    console.error("Failed to parse card with both approaches");
-    console.log("result:", result);
+    logger.error("Failed to parse card with both approaches");
+    logger.error("result:", result);
     return result;
 }
 

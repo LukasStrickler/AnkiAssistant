@@ -22,7 +22,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
-    const [showScrollbar, setShowScrollbar] = useState(false);
 
     // Toggle expanded options
     const toggleOptions = () => {
@@ -31,7 +30,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
 
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault();
             void onSendMessage();
         }
@@ -51,7 +50,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
             if (inputText.length === 0) {
                 // Reset to exact single line height when empty
                 textareaRef.current.style.height = '48px';
-                setShowScrollbar(false);
                 return;
             }
 
@@ -77,7 +75,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                     requestAnimationFrame(() => {
                         textareaRef.current!.style.height = `${scrollHeight}px`;
                     });
-                    setShowScrollbar(false);
                 } else {
                     // Content exceeds max height, enable scrolling
                     requestAnimationFrame(() => {
@@ -85,7 +82,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                     });
                     textareaRef.current.classList.remove('overflow-hidden');
                     textareaRef.current.classList.add('overflow-y-auto');
-                    setShowScrollbar(true);
                 }
             }
         }
@@ -140,6 +136,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                             "border-0 bg-transparent px-0 py-1 shadow-none outline-none",
                             "focus:outline-none focus:ring-0 focus-visible:ring-0",
                             "text-base leading-[24px] placeholder:text-muted-foreground/50",
+                            "whitespace-pre-wrap",
                             isSubmitting && "opacity-70"
                         )}
                     />

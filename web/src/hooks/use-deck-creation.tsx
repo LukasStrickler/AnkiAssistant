@@ -1,11 +1,9 @@
-import { useState, useCallback, useEffect, use } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
-    CardsLoadingStates,
-    CardsLoadingState,
-    GenerationStep,
-    OutlineItem,
-    OutlineLoadingState,
-    SavingLoadingState,
+    type GenerationStep,
+    type OutlineItem,
+    type OutlineLoadingState,
+    type SavingLoadingState,
     SavingLoadingStates,
     GenerationSteps,
     OutlineLoadingStates
@@ -17,10 +15,10 @@ import { isValidInput, preprocessInput } from "@/lib/deck-creation-inferencing/o
 import { toast } from "./use-toast";
 import { useModelStore } from "@/stores/model-store";
 import { useInferenceStore } from "@/stores/inference-store";
-import { AddPromptData } from "@/stores/inference-store";
 import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
-import { ankiClient, DeckTreeNode } from "@/lib/anki";
+import { ankiClient, type DeckTreeNode } from "@/lib/anki";
 import { useAnkiStore } from "@/stores/anki-store";
+import { logger } from "better-auth";
 /**
  * Define types for deck creation data
  */
@@ -38,9 +36,9 @@ export type DeckCreationHook = {
     updateOutlineItem: (outlineItem: OutlineItem) => void;
     resetData: () => void;
     handleGenerateAllCards: () => void;
-    handleGenerateCard: (outlineItem: OutlineItem, priority?: number) => void;
-    handleSaveAllCards: () => void;
-    streamFullOutlineGeneration: () => void;
+    handleGenerateCard: (outlineItem: OutlineItem, priority?: number) => Promise<void>;
+    handleSaveAllCards: () => Promise<void>;
+    streamFullOutlineGeneration: () => Promise<void>;
     currentStep: GenerationStep;
     setCurrentStep: (step: GenerationStep) => void;
     currentOutlineLoadingState: OutlineLoadingState;
@@ -88,11 +86,11 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     const [generationStatus, setGenerationStatus] = useState<string>("");
 
     const [data, setData] = useState<DeckCreationData>({
-        userInput: initialData?.userInput || '',
-        promptId: initialData?.promptId || 'default-system',
-        selectedNoteVariants: initialData?.selectedNoteVariants || variants.map(variant => variant.id),
-        outline: initialData?.outline || [],
-        setDialogOpen: initialData?.setDialogOpen || (() => { }),
+        userInput: initialData?.userInput ?? '',
+        promptId: initialData?.promptId ?? 'default-system',
+        selectedNoteVariants: initialData?.selectedNoteVariants ?? variants.map(variant => variant.id),
+        outline: initialData?.outline ?? [],
+        setDialogOpen: initialData?.setDialogOpen ?? undefined,
     });
 
     const updateData = useCallback((updates: Partial<DeckCreationData>) => {
@@ -257,7 +255,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         const existingDecks = getAllDeckNames(decks)
             .map(deck => `'${deck}'`)
             .join(', ');
-        
+
         // Get the selected variants from the store and format them as a string
         const selectedCardTypes = data.selectedNoteVariants
             .map(id => `'${id}'`)
@@ -309,7 +307,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         ];
 
         // Filter examples to only include selected note types
-        const filteredExamples = allExamples.filter(example => 
+        const filteredExamples = allExamples.filter(example =>
             data.selectedNoteVariants.includes(example.card_type)
         );
 
@@ -329,8 +327,8 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return;
         }
 
-        console.log("existingDecks", existingDecks);
-        console.log("selectedCardTypes", selectedCardTypes);
+        logger.info("existingDecks", existingDecks);
+        logger.info("selectedCardTypes", selectedCardTypes);
 
         const totalPrompt = prompt.systemMessage
             .replace("{existingDecks}", existingDecks)
@@ -340,7 +338,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             .replace("{rules}", rules);
 
 
-        console.log("totalPrompt", totalPrompt);
+        logger.info("totalPrompt", totalPrompt);
 
         setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
         await generateOutline(model, totalPrompt, (update) => {
@@ -375,7 +373,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         }
     }
 
-    async function handleGenerateCard(outlineItem: OutlineItem, priority: number = 0) {
+    async function handleGenerateCard(outlineItem: OutlineItem, priority = 0) {
         // Skip if this card is already being generated (status is generating or pending)
         // This prevents duplicate generation when connection is restored
         // if open editor is this card, close it
@@ -394,7 +392,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             card: undefined,
         });
 
-        generateCard(
+        void generateCard(
             outlineItem,
             updateOutlineCard,
             updateOutlineStatus,
@@ -405,7 +403,6 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     }
 
     async function handleSaveAllCards() {
-        //TODO: Add readl logic to save
         setSavedCount(0);
         setSaveTotalCount(data.outline.length);
         setCurrentStep(GenerationSteps.SAVING_DECK);
@@ -418,15 +415,12 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             });
         }
         // call deck saving service
-        // await 1s
         await new Promise(resolve => setTimeout(resolve, 1000));
         setCurrentSavingLoadingState(SavingLoadingStates.CONNECT);
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         setCurrentSavingLoadingState(SavingLoadingStates.SAVE);
 
-
-        // fir each item in the outline, set the status to saved
         for (const item of data.outline) {
             // set to saving
             updateOutlineStatus({
@@ -441,7 +435,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
                 ...item,
                 status: "saved",
             });
-            setSavedCount(savedCount + 1);
+            setSavedCount(prev => prev + 1);  // Use functional update form
         }
 
         toast({

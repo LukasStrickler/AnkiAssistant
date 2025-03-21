@@ -52,10 +52,6 @@ export function NavDecks() {
     }
   }, [highlightDecks, setHighlightDecks]);
 
-  const handleCreateDeck = (deckName: string) => {
-    void refreshDecks();
-  };
-
   return (
     <SidebarGroup
       className={cn(

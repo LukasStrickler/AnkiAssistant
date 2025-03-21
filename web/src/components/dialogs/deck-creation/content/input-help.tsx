@@ -86,7 +86,7 @@ export function InputHelp() {
                                     </li>
                                     <li className="flex items-center gap-2 text-foreground/80">
                                         <span className="text-primary">•</span>
-                                        Don't include unnecessary formatting
+                                        Don&apos;t include unnecessary formatting
                                     </li>
                                     <li className="flex items-center gap-2 text-foreground/80">
                                         <span className="text-primary">•</span>

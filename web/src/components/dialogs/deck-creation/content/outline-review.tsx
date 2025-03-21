@@ -1,6 +1,6 @@
-import { OutlineItem, GenerationSteps, GenerationStep } from "@/components/dialogs/deck-creation/types";
+import { type OutlineItem, GenerationSteps, type GenerationStep } from "@/components/dialogs/deck-creation/types";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { DeckCreationHook } from "@/hooks/use-deck-creation";
+import { type DeckCreationHook } from "@/hooks/use-deck-creation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { DeckSelector } from "@/components/selectors/deck-selector";
 import { useState } from "react";
 import { convertMarkdownToAnkiHTML } from "@/lib/anki";
+import { logger } from "better-auth";
 function OutlineItemCard(
     {
         outlineItem,
@@ -227,7 +228,7 @@ function OutlineSection(
 
     const groupOutlineItemsByDeck = () => {
         return outlineItems.reduce((acc, item) => {
-            acc[item.deck] = [...(acc[item.deck] || []), item];
+            acc[item.deck] = [...(acc[item.deck] ?? []), item];
             return acc;
         }, {} as Record<string, OutlineItem[]>);
     }
@@ -273,7 +274,7 @@ export function OutlineReview({ deckCreationHook }: { deckCreationHook: DeckCrea
 
     const handleRegenerateCard = (outlineItem: OutlineItem) => {
         // deckCreationHook.streamFullOutlineGeneration();
-        console.log("Regenerate Card", outlineItem);
+        logger.info("Regenerate Card", outlineItem);
         deckCreationHook.handleGenerateCard(outlineItem, 1);
     }
 

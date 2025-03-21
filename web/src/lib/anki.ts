@@ -1,6 +1,6 @@
 import { type ConnectionStatus } from "@/types/connection-status";
 import { logger } from "@/lib/logger";
-import { OutlineItem } from "@/components/dialogs/deck-creation/types";
+import { type OutlineItem } from "@/components/dialogs/deck-creation/types";
 import MarkdownIt from 'markdown-it';
 
 // Initialize markdown-it with HTML enabled and other useful features
@@ -10,6 +10,9 @@ const md = new MarkdownIt({
     linkify: true,
     typographer: true
 });
+
+// Ensure list parsing is enabled
+md.enable('list');
 
 interface AnkiRequest {
     action: string;
@@ -44,8 +47,6 @@ export interface BaseAnkiCard {
     };
     tags: string[];
 }
-
-export interface CreateAnkiCard extends BaseAnkiCard { }
 
 export interface AnkiCard extends BaseAnkiCard {
     cardId: number;
@@ -408,7 +409,7 @@ export class AnkiClient {
             throw new Error("Card is undefined");
         }
 
-        const card: CreateAnkiCard = {
+        const card: BaseAnkiCard = {
             deckName: outline.deck,
             modelName: "Basic",
             fields: {
@@ -443,7 +444,7 @@ export class AnkiClient {
         });
     }
 
-    async addCard(card: CreateAnkiCard, autoCreateDeck: boolean = false): Promise<number | null> {
+    async addCard(card: BaseAnkiCard, autoCreateDeck = false): Promise<number | null> {
         if (autoCreateDeck) {
             await this.createDeck(card.deckName);
         }
@@ -503,12 +504,12 @@ export function convertMarkdownToAnkiHTML(content: string): string {
     });
 
     // Save code blocks and replace with placeholders
-    content = content.replace(/```([\s\S]*?)```/g, (_match, code) => {
+    content = content.replace(/```([\s\S]*?)```/g, (_match, code: string) => {
         displayCodeExpressions.push(code);
         return DISPLAY_CODE_REPLACE;
     });
 
-    content = content.replace(/`([^`]+)`/g, (_match, code) => {
+    content = content.replace(/`([^`]+)`/g, (_match, code: string) => {
         inlineCodeExpressions.push(code);
         return INLINE_CODE_REPLACE;
     });

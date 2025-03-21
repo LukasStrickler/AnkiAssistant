@@ -1,10 +1,9 @@
-import { GenerationSteps, GenerationStep, OutlineItem, Card } from "@/components/dialogs/deck-creation/types";
+import { GenerationSteps, type GenerationStep, type OutlineItem } from "@/components/dialogs/deck-creation/types";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useRef, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
@@ -67,8 +66,6 @@ function OutlineItemEditor(
         onChange: (outlineItem: OutlineItem) => void
     }) {
 
-    if (!outlineItem) return null;
-
     // Access note variants from the store
     const { variants, selectedVariantId, selectVariant } = useNoteVariantStore();
 
@@ -78,15 +75,19 @@ function OutlineItemEditor(
     const keyPointsTextareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Use a local state to buffer changes before updating the parent
-    const [localOutlineItem, setLocalOutlineItem] = useState<OutlineItem>({ ...outlineItem });
+    const [localOutlineItem, setLocalOutlineItem] = useState<OutlineItem | null>(outlineItem ? { ...outlineItem } : null);
 
     // Sync local state with props when outlineItem changes
     useEffect(() => {
-        setLocalOutlineItem({ ...outlineItem });
-    }, [outlineItem.id, JSON.stringify(outlineItem)]);
+        if (outlineItem) {
+            setLocalOutlineItem(outlineItem);
+        }
+    }, [outlineItem?.id, JSON.stringify(outlineItem)]);
 
     // Debounced commit of changes to parent
     useEffect(() => {
+        if (!localOutlineItem || !outlineItem) return;
+
         // Only update parent if values are different
         if (JSON.stringify(localOutlineItem) !== JSON.stringify(outlineItem)) {
             const timeoutId = setTimeout(() => {
@@ -108,26 +109,34 @@ function OutlineItemEditor(
 
     // Auto-resize textareas when content changes or component mounts
     useEffect(() => {
+        if (!localOutlineItem) return;
         // Resize all textareas
         resizeTextarea(frontTextareaRef.current);
         resizeTextarea(backTextareaRef.current);
         resizeTextarea(keyPointsTextareaRef.current);
     }, [
-        localOutlineItem.key_points,
-        localOutlineItem.card?.front,
-        localOutlineItem.card?.back
+        localOutlineItem?.key_points,
+        localOutlineItem?.card?.front,
+        localOutlineItem?.card?.back
     ]);
+
+    // Early return if no outline item
+    if (!outlineItem || !localOutlineItem) return null;
 
     // Local handlers for updating fields
     const handleChange = (field: keyof OutlineItem, value: string) => {
-        setLocalOutlineItem(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setLocalOutlineItem(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                [field]: value
+            };
+        });
     };
 
     const handleCardChange = (field: 'front' | 'back', value: string) => {
         setLocalOutlineItem(prev => {
+            if (!prev) return null;
             const updatedCard = prev.card ? {
                 ...prev.card,
                 [field]: value
@@ -157,8 +166,8 @@ function OutlineItemEditor(
     };
 
     // Convert possibly undefined values to empty strings for safety
-    const cardTypeValue = localOutlineItem.card_type || "";
-    const selectedValue = selectedVariantId || "";
+    const cardTypeValue = localOutlineItem.card_type ?? "";
+    const selectedValue = selectedVariantId ?? "";
 
     // Determine which value to use for the selector
     const variantValue = cardTypeValue || selectedValue || safeFirstVariantId;
@@ -216,7 +225,7 @@ function OutlineItemEditor(
                         <Textarea
                             ref={frontTextareaRef}
                             id="front"
-                            value={localOutlineItem.card?.front || ""}
+                            value={localOutlineItem.card?.front ?? ""}
                             onChange={(e) => handleCardChange("front", e.target.value)}
                             placeholder="Front of the card"
                             className="min-h-[50px] resize-none overflow-hidden"
@@ -229,7 +238,7 @@ function OutlineItemEditor(
                         <Textarea
                             ref={backTextareaRef}
                             id="back"
-                            value={localOutlineItem.card?.back || ""}
+                            value={localOutlineItem.card?.back ?? ""}
                             onChange={(e) => handleCardChange("back", e.target.value)}
                             placeholder="Back of the card"
                             className="min-h-[50px] resize-none overflow-hidden"
