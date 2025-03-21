@@ -242,7 +242,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
            Choose or create an appropriate hierarchy based on the content.
         8. Always use a single string for all the keys in the json object`;
 
-        // TODO: Tim add real logic
+        // get all deck names 
         const getAllDeckNames = (nodes: DeckTreeNode[]): string[] => {
             return nodes.reduce((names: string[], node) => {
                 names.push(node.fullName);
@@ -253,6 +253,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             }, []);
         };
 
+        // these decks get injected into the prompt
         const existingDecks = getAllDeckNames(decks)
             .map(deck => `'${deck}'`)
             .join(', ');
