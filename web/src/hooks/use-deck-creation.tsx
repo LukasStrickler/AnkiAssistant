@@ -222,6 +222,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
 
 
         const rules = `
+        It is of paramount importence, that you follow these rules:
         1. **Keep it Simple**: Short and simple ideas are easier to remember.
         2. **Focus on Single Ideas**: Each card should focus on one concept only.
         3. **Be Specific**: Vague or general knowledge is harder to retain.
@@ -262,6 +263,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             .join(', ');
 
         const allExamples = [
+            // q&a-system examples
             {
                 "concept": "Introduction to Economics",
                 "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
@@ -269,40 +271,62 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
                 "card_type": "q&a-system"
             },
             {
-                "concept": "Law of Supply and Demand",
-                "key_points": "The price of a good is determined by its supply and demand in the market.",
-                "deck": "Uni::Sem 5::Economics::Basics::Law of Supply and Demand",
+                "concept": "Solving Quadratic Equations",
+                "key_points": "Quadratic equations can be solved using factoring, completing the square, or the quadratic formula.",
+                "deck": "Math::Algebra::Quadratic Equations::Solving Methods",
+                "card_type": "q&a-system"
+            },
+            // concept-system examples
+            {
+                "concept": "Photosynthesis Process",
+                "key_points": "Plants convert light energy into chemical energy through photosynthesis, producing glucose and oxygen.",
+                "deck": "Science::Biology::Plant Biology::Photosynthesis::Process",
                 "card_type": "concept-system"
             },
             {
-                "concept": "Market Structure Types",
-                "key_points": "Markets can be classified into four structures: Perfect Competition, Monopoly, Oligopoly, and Monopolistic Competition.",
-                "deck": "Uni::Sem 5::Economics::Basics::Market Structures",
+                "concept": "Supply Chain Management",
+                "key_points": "The coordination of activities involved in producing and delivering products from suppliers to customers.",
+                "deck": "Business::Operations::Supply Chain::Management",
+                "card_type": "concept-system"
+            },
+            // overview-system examples
+            {
+                "concept": "Python List Comprehension",
+                "key_points": "A concise way to create lists based on existing lists or sequences using a single line of code.",
+                "deck": "Programming::Python::Data Structures::List Comprehension",
                 "card_type": "overview-system"
             },
             {
-                "concept": "Inflation",
-                "key_points": "Inflation is the rate at which the general level of prices for goods and services rises.",
-                "deck": "Uni::Sem 5::Economics::Basics::Inflation",
+                "concept": "Classical Music Periods",
+                "key_points": "Overview of major periods: Baroque, Classical, Romantic, and Modern, each with distinct characteristics.",
+                "deck": "Arts::Music::Classical::History::Periods",
+                "card_type": "overview-system"
+            },
+            // definition-system examples
+            {
+                "concept": "Meditation Techniques",
+                "key_points": "Various methods of meditation including mindfulness, focused attention, and loving-kindness meditation.",
+                "deck": "Personal::Wellness::Meditation::Techniques",
                 "card_type": "definition-system"
             },
             {
-                "concept": "Economic Terms: GDP",
-                "key_points": "Gross Domestic Product (GDP) - The total monetary value of all finished goods and services produced within a country's borders in a specific time period.",
-                "deck": "Uni::Sem 5::Economics::Basics::Terminology",
+                "concept": "Quantum Computing Basics",
+                "key_points": "Fundamental principles of quantum computing including qubits, superposition, and quantum entanglement.",
+                "deck": "Technology::Computing::Quantum::Basics",
+                "card_type": "definition-system"
+            },
+            // vocabulary-system examples
+            {
+                "concept": "Spanish Grammar: Ser vs Estar",
+                "key_points": "Two Spanish verbs meaning 'to be' with different uses: Ser for permanent states, Estar for temporary conditions.",
+                "deck": "Languages::Spanish::Grammar::Verbs::Ser vs Estar",
                 "card_type": "vocabulary-system"
             },
             {
-                "concept": "Supply Chain Components",
-                "key_points": "A supply chain consists of suppliers, manufacturers, distributors, retailers, and end consumers working together to deliver products.",
-                "deck": "Uni::Sem 5::Economics::Basics::Supply Chain",
-                "card_type": "concept-system"
-            },
-            {
-                "concept": "Economic Systems Overview",
-                "key_points": "The main economic systems include market economy, command economy, and mixed economy, each with distinct characteristics in resource allocation.",
-                "deck": "Uni::Sem 5::Economics::Basics::Economic Systems",
-                "card_type": "overview-system"
+                "concept": "Medical Terminology: Cardiovascular System",
+                "key_points": "Key terms related to the heart and blood vessels, including prefixes, suffixes, and root words.",
+                "deck": "Health::Medical::Terminology::Cardiovascular",
+                "card_type": "vocabulary-system"
             }
         ];
 

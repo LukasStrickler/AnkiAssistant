@@ -17,8 +17,8 @@ export async function generateCard(
     const promptHint = variant?.promptHint ?? "Create a comprehensive card that effectively teaches the concept";
 
     const prompt = `
-    IMPORTANT: CREATE EXACTLY ONE (1) CARD, NO MORE AND NO LESS.
-    Even if the content is extensive, synthesize it into a single, comprehensive card.
+    You are the second model in the pipeline, tasked with creating ONE concise Anki flashcard from the provided outline.
+    Focus on the key information provided - do not add unnecessary details or examples.
 
     Card Type: ${outlineItem.card_type}
     Card Type Guidance: ${promptHint}
@@ -28,61 +28,47 @@ export async function generateCard(
             "front": "string",
             "back": "string"
         }
-    You are tasked with creating ONE high-quality Anki flashcard following these principles:
 
     CARD CREATION RULES:
     1. Front (Question) Guidelines:
-       - Create ONE focused question that tests understanding, not mere recall
-       - Frame the question to require explanation or analysis
-       - Use clear, unambiguous language
-       - Include necessary context but avoid giving away the answer
-       - Prefer formats like:
-         • "Why does/how does...?"
-         • "Explain the relationship between..."
-         • "Compare and contrast..."
-         • "What are the implications of...?"
+       - Create a single, focused question
+       - Use the exact terminology from the outline
+       - Keep questions short and direct
+       - Avoid complex scenarios or lengthy context
 
     2. Back (Answer) Guidelines:
-       - Structure the answer in a clear hierarchy
-       - Start with a concise main point/definition
-       - Follow with detailed explanation using bullet points
-       - Include at least one concrete example or application
-       - Use mnemonics or memorable associations when applicable
-       - End with any important exceptions or edge cases
+       - Use the key points directly from the outline
+       - Present information in a simple list or short paragraphs
+       - Avoid adding extra examples or explanations
+       - Keep the answer concise and to the point
+       - Use markdown formatting (if you want a line break, use \\n)
 
     3. Formatting Requirements:
-       - Use Markdown and LaTeX formatting
-       - For inline math: $x = y + z$
-       - For block math: $$\\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$
-       - **Bold** for key terms (first occurrence only)
-       - \`code blocks\` for syntax/technical terms
-       - > for definitions or important quotes
-       - Use nested bullets for hierarchical information:
-         • Main point
-           ◦ Sub-point
-             ▪ Detail
+       - Use minimal formatting
+       - For math: $x = y + z$ or $$\\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$
+       - Use **bold** only for key terms
+       - Use simple bullet points when needed
        - All LaTeX must use double backslashes: \\\\ not \\
 
     4. Quality Standards:
-       - Ensure the card follows the "minimum information principle"
-       - Make the card self-contained but not overwhelming
-       - Include all key points while maintaining clarity
-       - Use active voice and direct language
-       - Avoid ambiguity and vague terminology
-       - Test understanding rather than memorization
+       - Stick to the information provided in the outline
+       - Keep cards short and focused
+       - Avoid adding extra context or examples
+       - Use clear, direct language
+       - Test core understanding without complexity
 
-    Topic to cover:
-    ${outlineItem.concept}
-
-    Key points to include:
-    ${outlineItem.key_points}
+    Content to transform:
+    Topic: ${outlineItem.concept}
+    Key points: ${outlineItem.key_points}
 
     CRITICAL REQUIREMENTS:
-    - Generate EXACTLY ONE card
-    - Include ALL key points in this single card
-    - Return ONLY the JSON object, no explanations
+    - Generate EXACTLY ONE card - no more, no less
+    - Use ONLY the information from the outline
+    - Keep the card short and focused
+    - Return ONLY the JSON object, no additional text
     - Ensure proper escaping of special characters
     - Verify LaTeX syntax is correct
+    - Follow the card type's example format exactly
     `
 
     // Log the prompt for debugging

@@ -29,19 +29,20 @@ const DEFAULT_SYSTEM_PROMPT: PromptTemplate = {
 Generate outlines for flashcards based on the lecture notes provided.
 Each outline item should contain one concept only.
 
-### Deck Organization:
-- Check {existingDecks} for relevant existing deck structures
-- Use existing deck structure when available
-- Create new deck only if no suitable structure exists
-- Always reuse existing subdeck categories when possible
+### Selected Card Types:
+{selectedCardTypes}
 
 ### Rules for Creating Cards
 {rules}
 
+### Available Decks:
+{existingDecks}
+if no existing decks are available, create a new deck with a fitting name based on the user input.
+
 ### User Input:
 {userInput}
 
-### Output Format:
+### Example Output Format:
 {exampleOutput}
 `
 };
