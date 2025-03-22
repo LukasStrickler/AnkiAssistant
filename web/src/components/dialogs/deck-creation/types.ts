@@ -11,6 +11,7 @@ export type GenerationStep = (typeof GenerationSteps)[keyof typeof GenerationSte
 
 export const OutlineLoadingStates = {
     PREPARE: "Preparing input...",
+    LOADING_MODEL: "Loading Model...",
     GENERATE: "Generating outline...",
     CHECK: "Checking outline...",
     OPTIMIZE: "Optimizing outline...",

@@ -1,6 +1,6 @@
 // fix content
 
-import { Card } from "@/components/deck-creation-old/steps/types";
+import { type Card } from "@/components/dialogs/deck-creation/types";
 
 export async function optimizeCard(card: Card) {
 

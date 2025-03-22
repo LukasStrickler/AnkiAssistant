@@ -1,11 +1,20 @@
 // Import the OutlineItem type
 import { type OutlineItem } from '@/components/dialogs/deck-creation/types';
 import { OllamaClient, type ChatMessage } from '@/lib/ollama';
-import { logger } from "better-auth";
+import { logger } from "@/lib/logger";
+
+interface PartialOutlineItem {
+    partial?: string;
+    concept?: string;
+    key_points?: string;
+    deck?: string;
+    card_type?: string;
+    [key: string]: string | undefined;
+}
 
 type OutlineGenerationResult = {
     result: OutlineItem[];
-    ItemsWithMissingJsonFields: any[];
+    ItemsWithMissingJsonFields: PartialOutlineItem[];
 }
 
 export type StreamCallback = (update: OutlineGenerationResult) => void;
@@ -13,7 +22,8 @@ export type StreamCallback = (update: OutlineGenerationResult) => void;
 export async function generateOutline(
     model: string,
     prompt: string,
-    onStreamUpdate?: StreamCallback
+    onStreamUpdate?: StreamCallback,
+    onDelta?: (delta: string) => void
 ): Promise<OutlineGenerationResult> {
     logger.info("prompt", prompt);
     logger.info("model", model);
@@ -79,7 +89,7 @@ export async function generateOutline(
 
     return new Promise((resolve) => {
         let currentContent = '';
-        let result: OutlineGenerationResult = {
+        const result: OutlineGenerationResult = {
             result: [],
             ItemsWithMissingJsonFields: []
         };
@@ -100,6 +110,10 @@ export async function generateOutline(
         const handleDelta = (delta: { content: string, done?: boolean }) => {
             // console.log('Received token:', delta.content);
             currentContent += delta.content;
+
+            if (onDelta) {
+                onDelta(delta.content);
+            }
 
             // Process partial content to extract any complete objects
             const partialResult = parsePartialOutline(currentContent);
@@ -136,7 +150,12 @@ type RequiredField = typeof REQUIRED_FIELDS[number];
 /**
  * Creates a valid OutlineItem from an object with the required fields
  */
-function createOutlineItem(obj: Record<string, any>, index: number): OutlineItem {
+function createOutlineItem(obj: {
+    concept: string;
+    key_points: string;
+    deck: string;
+    card_type: string;
+}, index: number): OutlineItem {
     return {
         id: index + 1,
         concept: obj.concept,
@@ -168,7 +187,7 @@ function extractFieldValuesWithRegex(text: string): Record<RequiredField, string
 /**
  * Checks if an object has all the required fields with values
  */
-function hasAllRequiredFields(obj: Record<string, any>): boolean {
+function hasAllRequiredFields(obj: Record<string, unknown>): boolean {
     return REQUIRED_FIELDS.every(field =>
         field in obj && obj[field] !== undefined && obj[field] !== ''
     );
@@ -259,21 +278,32 @@ function processObjectText(
     index: number,
     result: OutlineGenerationResult
 ): void {
-    // First try standard JSON parsing
     try {
         const cleanedText = cleanJsonText(objectText);
-        const parsedObject = JSON.parse(cleanedText);
+        const parsedObject = JSON.parse(cleanedText) as Record<string, unknown>;
         // lower case all keys
-        const lowerCaseObject = Object.fromEntries(
-            Object.entries(parsedObject).map(([key, value]) => [key.toLowerCase(), value])
-        );
+        const lowerCaseObject: Record<string, string> = {};
+        for (const [key, value] of Object.entries(parsedObject)) {
+            if (typeof value === 'string') {
+                lowerCaseObject[key.toLowerCase()] = value;
+            }
+        }
 
-        if (hasAllRequiredFields(lowerCaseObject)) {
+        if (hasAllRequiredFields(lowerCaseObject) &&
+            typeof lowerCaseObject.concept === 'string' &&
+            typeof lowerCaseObject.key_points === 'string' &&
+            typeof lowerCaseObject.deck === 'string' &&
+            typeof lowerCaseObject.card_type === 'string') {
             // Valid complete item
-            result.result.push(createOutlineItem(lowerCaseObject, index));
+            result.result.push(createOutlineItem({
+                concept: lowerCaseObject.concept,
+                key_points: lowerCaseObject.key_points,
+                deck: lowerCaseObject.deck,
+                card_type: lowerCaseObject.card_type
+            }, index));
         } else {
             // Has some fields but not all
-            result.ItemsWithMissingJsonFields.push(lowerCaseObject);
+            result.ItemsWithMissingJsonFields.push(lowerCaseObject as PartialOutlineItem);
         }
         return; // RETURN IF SUCCESSFULLY PARSED
     } catch {
@@ -293,8 +323,17 @@ function processObjectText(
             Object.entries(extractedFields).map(([key, value]) => [key.toLowerCase(), value])
         );
 
-        if (hasAllRequiredFields(lowerCaseExtractedFields)) {
-            result.result.push(createOutlineItem(lowerCaseExtractedFields, index));
+        if (hasAllRequiredFields(lowerCaseExtractedFields) &&
+            typeof lowerCaseExtractedFields.concept === 'string' &&
+            typeof lowerCaseExtractedFields.key_points === 'string' &&
+            typeof lowerCaseExtractedFields.deck === 'string' &&
+            typeof lowerCaseExtractedFields.card_type === 'string') {
+            result.result.push(createOutlineItem({
+                concept: lowerCaseExtractedFields.concept,
+                key_points: lowerCaseExtractedFields.key_points,
+                deck: lowerCaseExtractedFields.deck,
+                card_type: lowerCaseExtractedFields.card_type
+            }, index));
         } else {
             result.ItemsWithMissingJsonFields.push({ partial: objectText });
         }

@@ -2,7 +2,11 @@ import { type OutlineItem } from "@/components/dialogs/deck-creation/types";
 import { type Card } from "@/components/dialogs/deck-creation/types";
 import { type AddPromptData, type InferencePromptStatus } from "@/stores/inference-store";
 import { useNoteVariantStore } from "@/stores/note-variant-store";
-import { logger } from "better-auth";
+import { logger } from "@/lib/logger";
+
+// Define valid status types to ensure type safety
+type ValidStatus = "pending" | "in-progress" | "completed" | "error";
+
 export async function generateCard(
     outlineItem: OutlineItem,
     updateOutlineCard: (outlineItem: OutlineItem) => void,
@@ -78,29 +82,14 @@ export async function generateCard(
     // Use the passed models
     const selectedModel = models.contentModel ?? models.overviewModel ?? models.availableModels[0] ?? "";
 
-    let fullPrompt: AddPromptData = {
+    const fullPrompt: AddPromptData = {
         creator: "deck-creation",
         prompt: prompt,
         model: selectedModel,
         priority: priority,
         finishFn: (result) => {
-            // here we set the card to the outline item
-
-            // check if it contains the front and back in json format
-
-            /*
-            {
-                "front": "string",
-                "back": "string"
-            }
-            */
-
-
-            // parse the result
             const card = parseCardResult(result);
             if (typeof card === "string") {
-                // if it is a string, it means there was an error
-                // so we set the card to the outline item
                 updateOutlineCard({
                     ...outlineItem,
                     card: {
@@ -108,9 +97,7 @@ export async function generateCard(
                         back: "PLEASE TRY FIXING THE CARD MANUALLY"
                     }
                 });
-
             } else {
-                // if it is a card, we set the card to the outline item
                 updateOutlineCard({
                     ...outlineItem,
                     card: card
@@ -118,35 +105,29 @@ export async function generateCard(
             }
         },
         updateStatusFn: (status: InferencePromptStatus) => {
+            const statusMap: Record<ValidStatus, OutlineItem['status']> = {
+                "pending": "pending",
+                "in-progress": "generating",
+                "completed": "card-review",
+                "error": "error"
+            };
 
-            if (status === "pending") {
+            const newStatus = statusMap[status as ValidStatus];
+            if (newStatus) {
                 updateOutlineStatus({
                     ...outlineItem,
-                    status: "pending"
-                });
-            } else if (status === "in-progress") {
-                updateOutlineStatus({
-                    ...outlineItem,
-                    status: "generating"
-                });
-            } else if (status === "completed") {
-                updateOutlineStatus({
-                    ...outlineItem,
-                    status: "card-review"
-                });
-            } else if (status === "error") {
-                updateOutlineStatus({
-                    ...outlineItem,
-                    status: "error"
+                    status: newStatus
                 });
             }
-            // here we update the status of the outline item
         }
-    }
+    };
 
     addPrompt(fullPrompt);
+}
 
-
+interface ParsedCard {
+    front: string;
+    back: string;
 }
 
 export function parseCardResult(result: string): Card | string {
@@ -157,11 +138,11 @@ export function parseCardResult(result: string): Card | string {
 
     // Approach 1: Try direct JSON parsing with cleaned input
     try {
-        // Clean the input by removing newlines and extra whitespace
         const cleanedResult = result.replace(/\n\s*/g, '\n').trim();
-        const json_result = cleanedResult.match(/{([\s\S]*?)}/);
-        if (json_result) {
-            const parsedCard = JSON.parse(json_result[0]);
+        const jsonRegex = /{([\s\S]*?)}/;
+        const jsonMatch = jsonRegex.exec(cleanedResult);
+        if (jsonMatch) {
+            const parsedCard = JSON.parse(jsonMatch[0]) as ParsedCard;
             if (isValidCard(parsedCard)) {
                 return parsedCard;
             }
@@ -172,13 +153,16 @@ export function parseCardResult(result: string): Card | string {
 
     // Approach 2: Try regex extraction with improved pattern
     try {
-        const frontMatch = result.match(/"front"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/);
-        const backMatch = result.match(/"back"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/);
+        const frontRegex = /"front"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/;
+        const backRegex = /"back"\s*:\s*"([^"]*(?:\\"[^"]*)*)"/;
+
+        const frontMatch = frontRegex.exec(result);
+        const backMatch = backRegex.exec(result);
 
         if (frontMatch && backMatch) {
-            const card = {
-                front: frontMatch[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\/g, '').trim() ?? '',
-                back: backMatch[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\/g, '').trim() ?? ''
+            const card: Card = {
+                front: (frontMatch[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\/g, '').trim() ?? ''),
+                back: (backMatch[1]?.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\/g, '').trim() ?? '')
             };
             if (isValidCard(card)) {
                 return card;
@@ -194,19 +178,22 @@ export function parseCardResult(result: string): Card | string {
     return result;
 }
 
-// Helper function to validate card structure
-function isValidCard(card: any): card is Card {
+function isValidCard(card: unknown): card is Card {
+    if (!card || typeof card !== 'object') {
+        return false;
+    }
+
+    const cardObj = card as Record<string, unknown>;
     return (
-        card &&
-        typeof card === 'object' &&
-        typeof card.front === 'string' &&
-        typeof card.back === 'string' &&
-        card.front.trim() !== '' &&
-        card.back.trim() !== ''
+        typeof cardObj.front === 'string' &&
+        typeof cardObj.back === 'string' &&
+        cardObj.front.trim() !== '' &&
+        cardObj.back.trim() !== ''
     );
 }
 
-function processMarkdownAndLatex(content: string): string {
+// Export the function to avoid the unused warning, as it might be used in the future
+export function processMarkdownAndLatex(content: string): string {
     // Replace LaTeX delimiters with Anki-compatible format
     content = content
         // Inline math: $...$ -> \\(...\\)

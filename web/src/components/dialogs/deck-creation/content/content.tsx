@@ -21,7 +21,7 @@ function LeftContent(
         case GenerationSteps.INPUT:
 
             function onSubmit() {
-                deckCreationHook.streamFullOutlineGeneration();
+                void deckCreationHook.streamFullOutlineGeneration();
             }
 
             return <InputStep

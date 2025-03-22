@@ -56,10 +56,13 @@ export const MessageContent = ({ message, role }: { message: string, role: 'user
             }
 
             return (
-                <div className="markdown-content whitespace-pre-wrap" key={index}>
+                <div className="markdown-content" key={index}>
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeKatex]}
+                        components={{
+                            p: ({ node, ...props }) => <p className="whitespace-pre-line" {...props} />
+                        }}
                     >
                         {part}
                     </ReactMarkdown>

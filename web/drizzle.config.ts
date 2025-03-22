@@ -1,12 +1,13 @@
-import { type Config } from "drizzle-kit";
+// import { type Config } from "drizzle-kit";
 
-import { env } from "@/env";
+// import { env } from "@/env";
 
-export default {
-  schema: "./src/server/db/schema.ts",
-  dialect: "sqlite",
-  dbCredentials: {
-    url: env.DATABASE_URL,
-  },
-  tablesFilter: ["ankiassistant_*"],
-} satisfies Config;
+// export default {
+//   schema: "./src/server/db/schema",
+//   out: "./.drizzle",
+//   dbCredentials: {
+//     url: env.DATABASE_URL,
+//     authToken: env.DATABASE_TOKEN,
+//   },
+//   tablesFilter: ["ankiassistant_*"],
+// } satisfies Config;

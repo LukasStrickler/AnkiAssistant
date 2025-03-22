@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { SystemPromptSelector } from "@/components/selectors/system-prompt";
 import { NoteVariantSelector } from "@/components/selectors/note-variant";
 import { logger } from "@/lib/logger";

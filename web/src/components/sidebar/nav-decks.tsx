@@ -33,7 +33,7 @@ import {
 import { Button } from "../ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import { deckToPath } from "@/app/deck/[...slug]/page";
+import { deckToPath } from "@/lib/utils";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
 
 export function NavDecks() {

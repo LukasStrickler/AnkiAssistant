@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { parsePartialOutline } from '../generation';
-import { OutlineItem } from '@/components/dialogs/deck-creation/types';
+import { type OutlineItem } from '@/components/dialogs/deck-creation/types';
 
 type TestCase = {
     value: string;

@@ -18,7 +18,7 @@ import { useInferenceStore } from "@/stores/inference-store";
 import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
 import { ankiClient, type DeckTreeNode } from "@/lib/anki";
 import { useAnkiStore } from "@/stores/anki-store";
-import { logger } from "better-auth";
+import { logger } from "@/lib/logger";
 /**
  * Define types for deck creation data
  */
@@ -39,6 +39,7 @@ export type DeckCreationHook = {
     handleGenerateCard: (outlineItem: OutlineItem, priority?: number) => Promise<void>;
     handleSaveAllCards: () => Promise<void>;
     streamFullOutlineGeneration: () => Promise<void>;
+    outlineDelta: string;
     currentStep: GenerationStep;
     setCurrentStep: (step: GenerationStep) => void;
     currentOutlineLoadingState: OutlineLoadingState;
@@ -72,6 +73,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     // Main State
     const [currentStep, _setCurrentStep] = useState<GenerationStep>(GenerationSteps.INPUT);
     const [currentOutlineLoadingState, setCurrentOutlineLoadingState] = useState<OutlineLoadingState>(OutlineLoadingStates.PREPARE);
+    const [outlineDelta, setOutlineDelta] = useState<string>("");
     // const [currentCardsLoadingState, setCurrentCardsLoadingState] = useState<CardsLoadingState>(CardsLoadingStates.GENERATE);
     const [currentSavingLoadingState, setCurrentSavingLoadingState] = useState<SavingLoadingState>(SavingLoadingStates.PREPARE);
     const [savedCount, setSavedCount] = useState(0);
@@ -143,6 +145,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         _setCurrentStep(GenerationSteps.INPUT);
         setSavedCount(0);
         setSaveTotalCount(0);
+        setOutlineDelta("");
         resetStates();
     }, []);
 
@@ -197,6 +200,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     // Outline
     async function streamFullOutlineGeneration() {
         updateData({ outline: [] });
+        setOutlineDelta("");
         // reset edit item
         setSelectedEditorOutlineItem(null);
 
@@ -364,11 +368,16 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
 
         logger.info("totalPrompt", totalPrompt);
 
-        setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
+        setCurrentOutlineLoadingState(OutlineLoadingStates.LOADING_MODEL);
         await generateOutline(model, totalPrompt, (update) => {
             //print the prompt
             updateData({ outline: update.result });
+        }, (delta) => {
+            setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
+            setOutlineDelta(prev => prev + delta);
         });
+
+        setOutlineDelta("");
 
         setCurrentOutlineLoadingState(OutlineLoadingStates.CHECK);
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -392,7 +401,9 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             // clear the old card
 
             if (item.status !== "generating" && item.status !== "pending") {
-                void handleGenerateCard(item);
+                handleGenerateCard(item).catch(error => {
+                    throw error;
+                });
             }
         }
     }
@@ -482,6 +493,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         handleGenerateCard,
         handleSaveAllCards,
         streamFullOutlineGeneration,
+        outlineDelta,
         currentStep,
         setCurrentStep,
         currentOutlineLoadingState,

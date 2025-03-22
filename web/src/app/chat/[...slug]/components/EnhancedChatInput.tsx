@@ -30,7 +30,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
 
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             void onSendMessage();
         }
@@ -136,7 +136,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                             "border-0 bg-transparent px-0 py-1 shadow-none outline-none",
                             "focus:outline-none focus:ring-0 focus-visible:ring-0",
                             "text-base leading-[24px] placeholder:text-muted-foreground/50",
-                            "whitespace-pre-wrap",
                             isSubmitting && "opacity-70"
                         )}
                     />

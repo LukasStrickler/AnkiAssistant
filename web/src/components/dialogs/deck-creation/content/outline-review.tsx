@@ -4,7 +4,7 @@ import { type DeckCreationHook } from "@/hooks/use-deck-creation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { DeckSelector } from "@/components/selectors/deck-selector";
 import { useState } from "react";
 import { convertMarkdownToAnkiHTML } from "@/lib/anki";
-import { logger } from "better-auth";
+import { logger } from "@/lib/logger";
 function OutlineItemCard(
     {
         outlineItem,
@@ -106,7 +106,20 @@ function OutlineItemAccordion(
                                 remarkPlugins={[remarkGfm, remarkMath]}
                                 rehypePlugins={[rehypeKatex]}
                                 components={{
-                                    p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />
+                                    p: ({ ...props }) => <p style={{ whiteSpace: 'pre-line' }} {...props} />,
+                                    pre: ({ ...props }) => <pre className="overflow-x-auto whitespace-pre-wrap break-words" {...props} />,
+                                    code: ({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) => {
+                                        const match = /language-(\w+)/.exec(className ?? '')
+                                        return !inline && match ? (
+                                            <code className={cn("bg-muted/50 rounded-md p-1 whitespace-pre-wrap break-words block", className)} {...props}>
+                                                {children}
+                                            </code>
+                                        ) : (
+                                            <code className="bg-muted/50 rounded-md p-1 whitespace-pre-wrap break-words" {...props}>
+                                                {children}
+                                            </code>
+                                        )
+                                    }
                                 }}>
                                 {outlineItem.key_points}
                             </ReactMarkdown>
@@ -205,6 +218,51 @@ function OutlineItemView({
         </AccordionItem>
     );
 }
+function OutlineItemLoading({ delta }: { delta: string }) {
+    return (
+        <Accordion type="single" collapsible defaultValue="status" className="w-full mb-4">
+            <AccordionItem value="status" className="border-none">
+                <AccordionTrigger className="hover:no-underline bg-muted/50 rounded-lg px-4">
+                    <div className="flex items-center gap-2">
+                        <Loader2 className="ml-2 h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">
+                            {delta ? "Generation in Progress..." : "Loading Model..."}
+                        </span>
+                    </div>
+                </AccordionTrigger>
+                {delta && (
+                    <AccordionContent className="px-2">
+                        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md overflow-hidden">
+                            <div className="prose prose-invert max-w-none break-words whitespace-pre-wrap">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                    components={{
+                                        p: ({ ...props }) => <p className="whitespace-pre-wrap break-words my-2" {...props} />,
+                                        pre: ({ ...props }) => <pre className="overflow-x-auto whitespace-pre-wrap break-words" {...props} />,
+                                        code: ({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) => {
+                                            const match = /language-(\w+)/.exec(className ?? '')
+                                            return !inline && match ? (
+                                                <code className={cn("bg-muted/50 rounded-md p-1 whitespace-pre-wrap break-words block", className)} {...props}>
+                                                    {children}
+                                                </code>
+                                            ) : (
+                                                <code className="bg-muted/50 rounded-md p-1 whitespace-pre-wrap break-words" {...props}>
+                                                    {children}
+                                                </code>
+                                            )
+                                        }
+                                    }}>
+                                    {delta}
+                                </ReactMarkdown>
+                            </div>
+                        </div>
+                    </AccordionContent>
+                )}
+            </AccordionItem>
+        </Accordion>
+    )
+}
 
 function OutlineSection(
     {
@@ -213,14 +271,16 @@ function OutlineSection(
         selectedEditorOutlineItem,
         handleRegenerateCard,
         currentStep,
-        handleUpdateItemDeck
+        handleUpdateItemDeck,
+        delta
     }: {
         outlineItems: OutlineItem[],
         setEditor: (outlineItem: OutlineItem) => void,
         selectedEditorOutlineItem: OutlineItem | null,
         handleRegenerateCard: (outlineItem: OutlineItem) => void,
         currentStep: GenerationStep,
-        handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void
+        handleUpdateItemDeck: (outlineItem: OutlineItem, newDeck: string) => void,
+        delta: string
     }
 ) {
     // State to track which items are open by their ID
@@ -237,6 +297,12 @@ function OutlineSection(
         <div className="w-full h-full bg-zinc-900/70 rounded-lg overflow-hidden">
             <ScrollArea className="w-full h-full p-2">
                 {/* {JSON.stringify(groupOutlineItemsByDeck())} */}
+
+                {/* if delta and no items, show delta */}
+                {(delta || (!delta && outlineItems.length === 0)) && (
+                    <OutlineItemLoading delta={delta} />
+                )}
+
                 {Object.keys(groupOutlineItemsByDeck()).map((deck) => (
                     <div key={deck}>
                         <h2 className="text-lg font-bold px-2 py-1">{deck}</h2>
@@ -267,20 +333,31 @@ function OutlineSection(
 
 export function OutlineReview({ deckCreationHook }: { deckCreationHook: DeckCreationHook }) {
     const outlineItems = deckCreationHook.data.outline;
+    const delta = deckCreationHook.outlineDelta;
 
-    const handleRegenerateCompleteOutline = () => {
-        deckCreationHook.streamFullOutlineGeneration();
+    const handleRegenerateCompleteOutline = async () => {
+        try {
+            await deckCreationHook.streamFullOutlineGeneration();
+        } catch (error: unknown) {
+            logger.error("Error regenerating outline:", error);
+        }
     }
 
-    const handleRegenerateCard = (outlineItem: OutlineItem) => {
-        // deckCreationHook.streamFullOutlineGeneration();
+    const handleRegenerateCard = async (outlineItem: OutlineItem) => {
         logger.info("Regenerate Card", outlineItem);
-        deckCreationHook.handleGenerateCard(outlineItem, 1);
+        try {
+            await deckCreationHook.handleGenerateCard(outlineItem, 1);
+        } catch (error: unknown) {
+            logger.error("Error regenerating card:", error);
+        }
     }
 
-    const handleRegenerateAllCards = () => {
-
-        deckCreationHook.handleGenerateAllCards();
+    const handleRegenerateAllCards = async () => {
+        try {
+            deckCreationHook.handleGenerateAllCards();
+        } catch (error: unknown) {
+            logger.error("Error regenerating all cards:", error);
+        }
     }
 
 
@@ -320,6 +397,7 @@ export function OutlineReview({ deckCreationHook }: { deckCreationHook: DeckCrea
                     handleRegenerateCard={handleRegenerateCard}
                     currentStep={deckCreationHook.currentStep}
                     handleUpdateItemDeck={deckCreationHook.handleUpdateItemDeck}
+                    delta={delta}
                 />
             </div>
         </div>

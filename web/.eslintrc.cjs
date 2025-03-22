@@ -2,7 +2,10 @@
 const config = {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": true
+    "project": "tsconfig.json",
+    "tsconfigRootDir": __dirname,
+    "ecmaVersion": "latest",
+    "sourceType": "module"
   },
   "plugins": [
     "@typescript-eslint",
@@ -59,4 +62,5 @@ const config = {
     ]
   }
 }
+
 module.exports = config;
