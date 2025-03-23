@@ -241,21 +241,23 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
            Choose or create an appropriate hierarchy based on the content.
         8. Always use a single string for all the keys in the json object`;
 
-        // get all deck names 
-        const getAllDeckNames = (nodes: DeckTreeNode[]): string[] => {
-            return nodes.reduce((names: string[], node) => {
-                names.push(node.fullName);
-                if (node.children.length > 0) {
-                    names.push(...getAllDeckNames(node.children));
-                }
-                return names;
-            }, []);
+        // get all deck names in a tree structure
+        const getAllDeckNames = (node: DeckTreeNode, level: number = 0): string[] => {
+            const indent = '  '.repeat(level);
+            const bullet = level === 0 ? '•' : '  •';
+            const names: string[] = [`${indent}${bullet} ${node.fullName}`];
+            if (node.children.length > 0) {
+                node.children.forEach(child => {
+                    names.push(...getAllDeckNames(child, level + 1));
+                });
+            }
+            return names;
         };
 
         // these decks get injected into the prompt
-        const existingDecks = getAllDeckNames(decks)
+        const existingDecks = decks[0] ? getAllDeckNames(decks[0])
             .map(deck => `'${deck}'`)
-            .join(', ');
+            .join(',\n') : '';
 
         // Get the selected variants from the store and format them as a string
         const selectedCardTypes = data.selectedNoteVariants
