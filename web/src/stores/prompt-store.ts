@@ -35,11 +35,13 @@ Each outline item should contain one concept only.
 ### Rules for Creating Cards
 {rules}
 
-### Available Decks:
+### Available Deck Options (for organizing cards):
+Below are the existing deck hierarchies you can use to organize the cards. These are just organizational options, not part of the user's input:
 {existingDecks}
-if no existing decks are available, create a new deck with a fitting name based on the user input.
 
-### User Input:
+If none of these decks are suitable, you can create a new deck with a fitting name based on the content.
+
+### User's Content to Process:
 {userInput}
 
 ### Example Output Format:

@@ -238,10 +238,6 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
            - Follow with sub-categories (e.g., semester, subject, topic)
            - End with the specific concept name
            - Example structure: 'Category::Subcategory::Subject::Topic::Concept'
-           - Real examples: 
-             * 'Uni::Sem 1::Math::Calculus::Derivatives'
-             * 'Work::Programming::Python::Basics::List Comprehension'
-             * 'Personal::Languages::Japanese::Grammar::Particles'
            Choose or create an appropriate hierarchy based on the content.
         8. Always use a single string for all the keys in the json object`;
 
