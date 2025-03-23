@@ -9,7 +9,8 @@ import { OutlineEditor } from "./outline-editor";
 import { OutlineReview } from "./outline-review";
 import { InputHelp } from "./input-help";
 import { Loading } from "./loadings";
-
+import { useEffect } from "react";
+import { DeckTreeNode } from "@/lib/anki";
 function LeftContent(
     {
         deckCreationHook
@@ -79,23 +80,26 @@ function RightContent(
 
 export function DeckCreationContent({
     setShowCloseConfirmation,
-    setDialogOpen
+    setDialogOpen,
+    parentDeck
 }: {
     setShowCloseConfirmation: (showCloseConfirmation: boolean) => void,
-    setDialogOpen: (dialogOpen: boolean) => void
+    setDialogOpen: (dialogOpen: boolean) => void,
+    parentDeck?: DeckTreeNode
 }) {
 
 
     // Main Data
     const deckCreationHook = useDeckCreation({
-        setDialogOpen
+        setDialogOpen,
+        parentDeck
     });
 
-    // Render
+    const title = parentDeck ? `Create a deck for ${parentDeck.name}` : 'Create a new deck';
     return (
         <>
             <AlertDialogHeader className="sr-only">
-                <AlertDialogTitle>Create New Deck Dialog</AlertDialogTitle>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
             </AlertDialogHeader>
 
             <Button

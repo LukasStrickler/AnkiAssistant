@@ -6,7 +6,7 @@ import { MessageSquarePlus, FolderSearch, FolderPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAnkiStore } from "@/stores/anki-store";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
-
+import { useState } from "react";
 export default function Home() {
   const router = useRouter();
   const { expandAllDecks, setHighlightDecks } = useAnkiStore();
@@ -16,6 +16,9 @@ export default function Home() {
     expandAllDecks();
     setHighlightDecks(true);
   };
+
+  const [open, setOpen] = useState(false);
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
   return (
     <main className="h-full flex items-center justify-center bg-background rounded-xl">
@@ -95,7 +98,12 @@ export default function Home() {
                   size="sm"
                   asChild
                 >
-                  <DeckCreationDialogTrigger variant="full" />
+                  <DeckCreationDialogTrigger variant="full"
+                    setOpen={setOpen}
+                    setShowCloseConfirmation={setShowCloseConfirmation}
+                    open={open}
+                    showCloseConfirmation={showCloseConfirmation}
+                  />
                 </Button>
               </CardContent>
             </Card>

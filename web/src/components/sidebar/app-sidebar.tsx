@@ -44,11 +44,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
+      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden max-w-full">
         <div className="flex-1 min-h-0">
           <NavMain />
         </div>
-        <Separator className="mx-auto py-0.5 rounded-xl max-w-[90%]" />
+        <Separator className="mx-auto py-0.5 rounded-xl max-w-[95%]" />
         <div className="flex-1 min-h-0 mt-1">
           <NavDecks />
         </div>

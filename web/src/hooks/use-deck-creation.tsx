@@ -28,6 +28,7 @@ export type DeckCreationData = {
     selectedNoteVariants: string[];
     outline: OutlineItem[];
     setDialogOpen?: (dialogOpen: boolean) => void;
+    parentDeck?: DeckTreeNode;
 };
 
 export type DeckCreationHook = {
@@ -93,6 +94,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         selectedNoteVariants: initialData?.selectedNoteVariants ?? variants.map(variant => variant.id),
         outline: initialData?.outline ?? [],
         setDialogOpen: initialData?.setDialogOpen ?? undefined,
+        parentDeck: initialData?.parentDeck ?? undefined,
     });
 
     const updateData = useCallback((updates: Partial<DeckCreationData>) => {
@@ -242,7 +244,7 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
         8. Always use a single string for all the keys in the json object`;
 
         // get all deck names in a tree structure
-        const getAllDeckNames = (node: DeckTreeNode, level: number = 0): string[] => {
+        const getAllDeckNames = (node: DeckTreeNode, level = 0): string[] => {
             const indent = '  '.repeat(level);
             const bullet = level === 0 ? '•' : '  •';
             const names: string[] = [`${indent}${bullet} ${node.fullName}`];
@@ -254,8 +256,9 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return names;
         };
 
+
         // these decks get injected into the prompt
-        const existingDecks = decks[0] ? getAllDeckNames(decks[0])
+        const existingDecks = data.parentDeck ? getAllDeckNames(data.parentDeck)
             .map(deck => `'${deck}'`)
             .join(',\n') : '';
 
