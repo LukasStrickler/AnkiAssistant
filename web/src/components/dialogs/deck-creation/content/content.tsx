@@ -9,8 +9,8 @@ import { OutlineEditor } from "./outline-editor";
 import { OutlineReview } from "./outline-review";
 import { InputHelp } from "./input-help";
 import { Loading } from "./loadings";
-import { useEffect } from "react";
-import { DeckTreeNode } from "@/lib/anki";
+import { type DeckTreeNode } from "@/lib/anki";
+
 function LeftContent(
     {
         deckCreationHook

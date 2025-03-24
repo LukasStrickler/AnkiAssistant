@@ -3,10 +3,9 @@ import { AlertDialog } from "@/components/ui/alert-dialog";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useState } from "react";
 import { DeckCreationCloseConfirmation } from "./close-confirmation";
 import { DeckCreationContent } from "./content/content";
-import { DeckTreeNode } from "@/lib/anki";
+import { type DeckTreeNode } from "@/lib/anki";
 interface DeckCreationDialogTriggerProps {
     variant?: 'icon' | 'full' | 'small';
     parentDeck?: DeckTreeNode;
@@ -72,7 +71,7 @@ export function DeckCreationDialogTrigger({
                                         className={`w-full gap-2 ${className ?? ''}`}
                                         onClick={(e) => e.stopPropagation()}
                                     >
-                                        {parentDeck ? `Create subdeck in ${parentDeck.name}` : "Create new deck"}
+                                        Add new card/deck
                                     </Button>
                                 );
                         }

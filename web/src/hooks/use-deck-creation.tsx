@@ -17,7 +17,6 @@ import { useModelStore } from "@/stores/model-store";
 import { useInferenceStore } from "@/stores/inference-store";
 import { generateCard } from "@/lib/deck-creation-inferencing/cards/generation";
 import { ankiClient, type DeckTreeNode } from "@/lib/anki";
-import { useAnkiStore } from "@/stores/anki-store";
 import { logger } from "@/lib/logger";
 /**
  * Define types for deck creation data
@@ -69,7 +68,6 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     const { variants } = useNoteVariantStore();
     const { overviewModel, contentModel, availableModels } = useModelStore();
     const { addPrompt } = useInferenceStore();
-    const { decks } = useAnkiStore();
 
     // Main State
     const [currentStep, _setCurrentStep] = useState<GenerationStep>(GenerationSteps.INPUT);

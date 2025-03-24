@@ -1,29 +1,88 @@
-# Create T3 App
+# AnkiAssistant Web Application
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This directory contains the web application for AnkiAssistant, built with Next.js, tRPC, and TypeScript.
 
-## What's next? How do I make an app with this?
+## 🗂️ Directory Structure
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+```
+web/
+├── src/                 # Source code
+│   ├── app/             # Next.js App Router
+│   │   ├── api/         # API routes
+│   │   │   ├── auth/    # Authentication API routes
+│   │   │   └── trpc/    # tRPC API endpoints
+│   │   ├── chat/        # Chat interface
+│   │   │   └── [...slug]/ # Dynamic chat routes
+│   │   ├── deck/        # Deck management
+│   │   │   └── [...slug]/ # Dynamic deck routes
+│   │   └── page.tsx     # Main application page
+│   ├── components/      # Reusable UI components
+│   │   ├── ui/          # Basic UI components (buttons, inputs, etc.)
+│   │   └── features/    # Feature-specific components
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility functions and libraries
+│   ├── server/          # Server-side code
+│   │   ├── auth/        # Authentication setup
+│   │   └── db/          # Database configuration
+│   ├── stores/          # State management
+│   ├── styles/          # Global styles
+│   ├── trpc/            # tRPC setup
+│   └── types/           # TypeScript type definitions
+│
+├── public/              # Static assets
+└── docs/                # Documentation
+```
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 🔧 Technologies
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Framework**: [Next.js](https://nextjs.org/) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **API**: [tRPC](https://trpc.io/) for type-safe APIs
+- **Database**: [Drizzle ORM](https://orm.drizzle.team/) with SQLite/Turso
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) and [ShadCN UI](https://ui.shadcn.com/)
+- **Authentication**: [BetterAuth](https://better-auth.com/)
+- **State Management**: React Context and React Query
 
-## Learn More
+## 🚀 Development Setup
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Prerequisites
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- Node.js 18+ and npm
+- Git
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Installation
 
-## How do I deploy this?
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` with your specific configuration values.
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+   The application will be available at [http://localhost:3000](http://localhost:3000).
+
+### Environment Variables
+
+Check the [env.example](.env.example) file for the environment variables.
+
+## 🧪 Testing
+
+Run the tests with:
+
+```bash
+npm run test
+```
+
+## 🌐 AI Integration
+
+The application integrates with AI services to generate flashcards:
+
+- local Ollama integration for offline/self-hosted operation

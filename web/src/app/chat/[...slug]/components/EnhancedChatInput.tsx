@@ -176,6 +176,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                                                 <TooltipTrigger asChild>
                                                     <Button
                                                         size="icon"
+                                                        disabled={true}
                                                         variant="ghost"
                                                         className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
                                                     >
@@ -200,6 +201,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                                                         size="icon"
                                                         variant="ghost"
                                                         className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                                                        disabled={true}
                                                     >
                                                         <BookOpen className="h-4 w-4" />
                                                     </Button>
@@ -222,6 +224,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                                                         size="icon"
                                                         variant="ghost"
                                                         className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                                                        disabled={true}
                                                     >
                                                         <CreditCard className="h-4 w-4" />
                                                     </Button>

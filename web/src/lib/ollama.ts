@@ -3,7 +3,7 @@ import { z } from "zod";
 import { type ConnectionStatus } from "@/types/connection-status";
 
 export interface ChatMessage {
-    role: 'user' | 'assistant' | 'system';
+    role: 'user' | 'assistant' | 'system' | 'anki';
     content: string;
 }
 
@@ -52,6 +52,7 @@ export interface ChatMessageDelta {
 interface OllamaOptions {
     temperature?: number;
     top_p?: number;
+    keep_alive?: number; // Duration in seconds to keep model in memory
     // Include other options that might be used
 }
 
@@ -101,11 +102,16 @@ export class OllamaClient {
         return data.models.map((m) => m.name);
     }
 
-    async generateChatCompletion(messages: ChatMessage[], model: string, options?: object): Promise<OllamaResponse> {
+    async generateChatCompletion(messages: ChatMessage[], model: string, options?: OllamaOptions): Promise<OllamaResponse> {
+        const finalOptions = {
+            ...options,
+            keep_alive: options?.keep_alive ?? 300 // Default 5 minutes
+        };
+
         return this.request<OllamaResponse>('/chat', {
             model,
             messages,
-            options
+            options: finalOptions
         });
     }
 
@@ -117,6 +123,12 @@ export class OllamaClient {
         abortController?: AbortController
     ): Promise<void> {
         try {
+            // Add default keep_alive of 5 minutes (300 seconds)
+            const finalOptions = {
+                ...options,
+                keep_alive: options.keep_alive ?? 300
+            };
+
             const requestOptions: RequestInit = {
                 method: 'POST',
                 headers: {
@@ -125,7 +137,7 @@ export class OllamaClient {
                 body: JSON.stringify({
                     model,
                     messages,
-                    options,
+                    options: finalOptions,
                     stream: true
                 }),
             };

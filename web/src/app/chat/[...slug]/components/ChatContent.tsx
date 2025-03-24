@@ -1,18 +1,28 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/local-db";
-import type { Message } from "@/local-db";
+import type { Message, ReferencedDeckToChat } from "@/local-db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useModelStore } from "@/stores/model-store";
-import { ollamaClient } from "@/lib/ollama";
+import { ChatMessage, ollamaClient } from "@/lib/ollama";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
 import { logger } from "@/lib/logger";
 import { EnhancedChatInput } from "./EnhancedChatInput";
+import { AllDecks } from "@/components/anki/all-decks";
+import { useAnkiStore } from "@/stores/anki-store";
+import { type AnkiCard, ankiClient, type DeckTreeNode } from "@/lib/anki";
+import { AnkiMessage } from "./AnkiMessage";
 // System prompt for AI formatting instructions
 const SYSTEM_PROMPT = `You are an Anki Assistant helping the user with flashcards and learning. 
+When the user asks about a specific card in a deck, check if that deck was referenced earlier in the conversation with @Deck().
+If the deck was referenced, you have access to its cards and should explain the requested card.
+
+For example, if a user asks "explain the second card in my deck 02 - Languages::01 - English", and this deck was referenced earlier,
+you should look for the second card in that deck and explain it in detail.
+
 Always format your responses using proper Markdown:
 - Use **bold** for emphasis
 - Use *italics* when appropriate
@@ -21,7 +31,9 @@ Always format your responses using proper Markdown:
 - Use > for quotes or important notes
 - Use math notation with $$ for equations when needed
 - Use tables when presenting structured information
-- Structure your responses with clear headings using # and ## when appropriate`;
+- Structure your responses with clear headings using # and ## when appropriate
+- If
+`;
 
 /**
  * Custom hook to manage chat ID and name from URL
@@ -289,25 +301,40 @@ async function processAIResponse(chatId: number, model: string, assistantMessage
         .equals(chatId)
         .sortBy('createdAt');
 
+    console.log('chatHistory', chatHistory);
+
     // Format messages for Ollama API
     const formattedMessages = chatHistory.map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'system',
+        role: msg.role as 'user' | 'assistant' | 'system' | 'anki',
         content: msg.content
     }));
 
     // Remove the empty assistant message we just created from the chat history
     formattedMessages.pop();
 
-    // Add system message with formatting instructions
+    // Get deck information from Anki messages
+    const ankiMessages = chatHistory.filter(msg => msg.role === 'anki');
+    let deckContext = '';
+
+    if (ankiMessages.length > 0) {
+        deckContext = `\n\nThe following Anki decks have been referenced in this conversation:\n`;
+        for (const msg of ankiMessages) {
+            const deckName = msg.content.trim().split('\n')[0]?.trim().split(':')[1]?.trim() || 'Unknown Deck';
+            deckContext += `- ${deckName}\n`;
+        }
+        deckContext += `\nWhen the user asks about cards in these decks, use the information that was shown earlier in the conversation.`;
+    }
+
+    // Add system message with formatting instructions and deck context
     formattedMessages.unshift({
         role: 'system',
-        content: SYSTEM_PROMPT
+        content: SYSTEM_PROMPT + deckContext
     });
 
     // Stream the response
     let content = '';
     await ollamaClient.streamChatCompletion(
-        formattedMessages,
+        formattedMessages as ChatMessage[],
         model,
         {},
         (delta) => {
@@ -391,7 +418,13 @@ const MessagesList = ({ messages }: { messages: Message[] }) => (
                         <UserMessage message={message} />
                     </div>
                 ) : (
-                    <AssistantMessage key={message.id} message={message} />
+                    message.role === 'anki' ? (
+                        <AnkiMessage key={message.id} content={message.content} />
+                    ) : (
+                        <div key={message.id} className="pb-4">
+                            <AssistantMessage message={message} />
+                        </div>
+                    )
                 )
             )
         }
@@ -406,6 +439,79 @@ export const ChatContent = () => {
     const { chatId } = useChatNavigation();
     const { messages, isLoading, hasGeneratingMessage } = useChatMessages(chatId);
     const { isSubmitting, startInference } = useAIInference(chatId);
+    const { decks } = useAnkiStore();
+    const [cards, setCards] = useState<AnkiCard[]>([]);
+
+    // Define the deck reference extraction function
+    const findReferencedDecks = (message: string) => {
+        const deckRegex = /@Deck\(([^)]+)\)/g;
+        const matches = message.match(deckRegex);
+        return matches ? matches.map(match => match.replace(/@Deck\(([^)]+)\)/, '$1')) : [];
+    };
+
+    const referencedDecks = useLiveQuery<ReferencedDeckToChat[]>(() => {
+        return db.referencedDecksToChat.where('chatId').equals(Number(chatId)).toArray();
+    }, [chatId]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const controller = new AbortController();
+
+        const loadCards = async () => {
+            try {
+                // Start with empty cards array
+                setCards([]);
+
+                if (!referencedDecks || referencedDecks.length === 0) {
+                    // No decks to load if no references
+                    logger.info('No referenced decks to load');
+                    return;
+                } else {
+                    // Load each referenced deck sequentially
+                    const allCards = new Map();
+
+                    // Process referenced decks sequentially
+                    for (const deckRef of referencedDecks) {
+                        if (!isMounted) return;
+
+                        try {
+                            const stream = ankiClient.streamDeckCards(deckRef.deckFullName, 10, controller.signal);
+
+                            // Wait for this deck's stream to complete before moving to next deck
+                            for await (const batch of stream) {
+                                if (!isMounted) return;
+
+                                // Update the map with new cards
+                                batch.forEach(newCard => allCards.set(newCard.cardId, newCard));
+
+                                // Update the cards state to show progress
+                                setCards(Array.from(allCards.values()));
+                            }
+
+                            // Log successful load
+                            logger.info(`Loaded cards from deck: ${deckRef.deckFullName}`);
+                        } catch (error) {
+                            if (isMounted) logger.error(`Failed to load cards from deck: ${deckRef.deckFullName}`, error);
+                            // Continue with next deck even if this one failed
+                        }
+                    }
+
+                    // Final update with all cards
+                    if (isMounted) {
+                        setCards(Array.from(allCards.values()));
+                    }
+                }
+            } catch (error) {
+                if (isMounted) logger.error('Card loading interrupted', error);
+            }
+        };
+
+        void loadCards();
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
+    }, [referencedDecks]);
 
     // Set up auto-inference from URL parameter
     useAutoInference(chatId, messages, isLoading, hasGeneratingMessage, startInference);
@@ -417,8 +523,8 @@ export const ChatContent = () => {
         const messageToSend = inputText.trim();
         setInputText("");
 
+
         try {
-            // Add user message to database
             await db.messages.add({
                 content: messageToSend,
                 role: 'user',
@@ -426,7 +532,45 @@ export const ChatContent = () => {
                 modelUsed: "",
                 chatId: Number(chatId),
             });
+        } catch (error) {
+            logger.error("Error sending message:", error);
+        }
 
+        // Extract referenced decks from the message
+        const referencedDeckNames = findReferencedDecks(messageToSend);
+        const deckValidationResults = [];
+        // Check if decks exist and log simple results
+        for (const deckName of referencedDeckNames) {
+            const exists = doesDeckExist(deckName, decks);
+            deckValidationResults.push({ name: deckName, exists });
+        }
+
+        // for each valid deck, add it to referencedDecks if not already present
+        for (const deck of deckValidationResults) {
+            if (deck.exists) {
+                // check if deck is already referenced
+                const isReferenced = await db.referencedDecksToChat
+                    .filter(d => d.deckFullName === deck.name && d.chatId === Number(chatId))
+                    .first();
+
+                if (!isReferenced) {
+                    await db.referencedDecksToChat.add({ deckFullName: deck.name, chatId: Number(chatId) });
+                }
+
+                const content = await getAnkiDeckContent(deck.name, decks);
+
+                // add a "Anki Deck" message to the chat
+                await db.messages.add({
+                    content: content,
+                    role: 'anki',
+                    createdAt: new Date(),
+                    modelUsed: "",
+                    chatId: Number(chatId),
+                });
+            }
+        }
+
+        try {
             // Start AI response
             await startInference();
         } catch (error) {
@@ -440,7 +584,7 @@ export const ChatContent = () => {
             <div className="flex-1 flex flex-col p-2">
                 <ScrollArea className="flex-1 pr-1 scroll-area">
                     <div className="pr-4">
-                        <div className="max-w-3xl mx-auto p-4 space-y-6">
+                        <div className="max-w-3xl mx-auto p-4 space-y-2">
                             {isLoading ? (
                                 <ChatLoadingState />
                             ) : !Array.isArray(messages) || messages.length === 0 ? (
@@ -469,7 +613,7 @@ export const ChatContent = () => {
                 <ScrollArea className="h-full pr-1">
                     <div className="pr-4">
                         <div className="max-w-3xl mx-auto p-4 text-muted-foreground">
-                            Preview/Assistant Area (Placeholder)
+                            <AllDecks cards={cards} />
                         </div>
                     </div>
                     <ScrollBar orientation="vertical" />
@@ -478,5 +622,111 @@ export const ChatContent = () => {
         </div>
     );
 };
+
+// Function to check if a deck exists in the deck collection
+function doesDeckExist(deckName: string, allDecks: DeckTreeNode[]): boolean {
+    // Get all deck names including children
+    const getAllDeckNames = (decks: DeckTreeNode[]): string[] => {
+        let names: string[] = [];
+
+        for (const deck of decks) {
+            // Add current deck name
+            names.push(deck.fullName);
+
+            // Add all children's names recursively
+            if (deck.children && deck.children.length > 0) {
+                names = names.concat(getAllDeckNames(deck.children));
+            }
+        }
+
+        return names;
+    };
+
+    // Get all deck names including children
+    const allDeckNames = getAllDeckNames(allDecks);
+
+    // Simple existence check
+    return allDeckNames.some(name =>
+        name === deckName ||
+        name.includes(deckName)
+    );
+
+
+}
+
+async function getAnkiDeckContent(deckName: string, decks: DeckTreeNode[]): Promise<string> {
+    // Find all matching decks including children
+    const findAllMatchingDecks = (deckToFind: string, allDecks: DeckTreeNode[]): DeckTreeNode[] => {
+        let result: DeckTreeNode[] = [];
+
+        for (const deck of allDecks) {
+            // Add the deck if it matches exactly
+            if (deck.fullName === deckToFind) {
+                result.push(deck);
+            }
+
+            // Recursively check children
+            if (deck.children.length > 0) {
+                result = result.concat(findAllMatchingDecks(deckToFind, deck.children));
+            }
+        }
+
+        return result;
+    };
+
+    // Get the requested deck (without child decks)
+    const exactMatchingDecks = findAllMatchingDecks(deckName, decks);
+    console.log("Found exact matching deck:", exactMatchingDecks.map(d => d.fullName));
+
+    // If no exact match was found, try fuzzy matching
+    if (exactMatchingDecks.length === 0) {
+        // Get all deck names including children
+        const getAllDeckNames = (someDecks: DeckTreeNode[]): string[] => {
+            let names: string[] = [];
+
+            for (const deck of someDecks) {
+                names.push(deck.fullName);
+                if (deck.children.length > 0) {
+                    names = names.concat(getAllDeckNames(deck.children));
+                }
+            }
+
+            return names;
+        };
+
+        const allDeckNames = getAllDeckNames(decks);
+        const fuzzyMatch = allDeckNames.find(name =>
+            name.includes(deckName) ||
+            deckName.includes(name)
+        );
+
+        if (fuzzyMatch) {
+            console.log(`Using fuzzy match: ${fuzzyMatch} for ${deckName}`);
+            return getAnkiDeckContent(fuzzyMatch, decks);
+        }
+    }
+
+    const mainDeckContent = await Promise.all(exactMatchingDecks.map(async (deck) => {
+        // get all cards from the deck
+        const cards = await ankiClient.getDeckCards(deck.fullName);
+
+        return `
+        DECK: ${deck.fullName}
+        CARDS: ${cards.length}
+        ${cards.map((card, index) => `
+        CARD ${index + 1}:
+        ${card.fields.Front}
+        ${card.fields.Back}
+        `).join('\n --- \n ---\n')}
+        `;
+    }));
+
+    const content = `
+    TOP DECK: ${deckName}
+    ${mainDeckContent.length > 0 ? mainDeckContent.join('\n --- \n ---\n') : 'No cards found in this deck'}
+    `;
+
+    return content;
+}
 
 export default ChatContent; 

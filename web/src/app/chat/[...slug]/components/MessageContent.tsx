@@ -61,7 +61,7 @@ export const MessageContent = ({ message, role }: { message: string, role: 'user
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeKatex]}
                         components={{
-                            p: ({ node, ...props }) => <p className="whitespace-pre-line" {...props} />
+                            p: ({ ...props }) => <p className="whitespace-pre-line" {...props} />
                         }}
                     >
                         {part}

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAnkiStore } from "@/stores/anki-store";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
 import { useState } from "react";
+import { DeckTreeNode } from "@/lib/anki";
 export default function Home() {
   const router = useRouter();
   const { expandAllDecks, setHighlightDecks } = useAnkiStore();
@@ -19,7 +20,20 @@ export default function Home() {
 
   const [open, setOpen] = useState(false);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+  const { decks } = useAnkiStore();
 
+  // export interface DeckTreeNode {
+  //     name: string;
+  //     fullName: string;
+  //     children: DeckTreeNode[];
+  //     cardCount: number;
+  // }
+  const parentDeck: DeckTreeNode = {
+    name: "",
+    fullName: "",
+    children: decks,
+    cardCount: 0
+  }
   return (
     <main className="h-full flex items-center justify-center bg-background rounded-xl">
       <div className="container flex items-center justify-center">
@@ -103,6 +117,7 @@ export default function Home() {
                     setShowCloseConfirmation={setShowCloseConfirmation}
                     open={open}
                     showCloseConfirmation={showCloseConfirmation}
+                    parentDeck={parentDeck}
                   />
                 </Button>
               </CardContent>

@@ -9,9 +9,16 @@ interface Chat {
 interface Message {
     id: number;
     content: string;
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'anki';
     createdAt: Date;
     modelUsed: string;
+    chatId: number;
+}
+
+
+interface ReferencedDeckToChat {
+    id: number;
+    deckFullName: string;
     chatId: number;
 }
 
@@ -24,12 +31,17 @@ const db = new Dexie('ChatsDatabase') as Dexie & {
         Message,
         'id'
     >;
+    referencedDecksToChat: EntityTable<
+        ReferencedDeckToChat,
+        'id'
+    >;
 };
 
-db.version(4).stores({
+db.version(10).stores({
     chats: '++id, name, createdAt',
-    messages: '++id, content, role, createdAt, modelUsed, chatId'
+    messages: '++id, content, role, createdAt, modelUsed, chatId',
+    referencedDecksToChat: '++id, deckFullName, chatId'
 });
 
-export type { Chat, Message };
+export type { Chat, Message, ReferencedDeckToChat };
 export { db }
