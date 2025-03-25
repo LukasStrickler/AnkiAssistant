@@ -11,6 +11,7 @@ interface EnhancedChatInputProps {
     setInputText: React.Dispatch<React.SetStateAction<string>>;
     isSubmitting: boolean;
     onSendMessage: () => Promise<void>;
+    disableSubmit?: boolean;
 }
 
 export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
@@ -18,6 +19,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
     setInputText,
     isSubmitting,
     onSendMessage,
+    disableSubmit = false
 }) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -254,7 +256,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
                         <Button
                             size="sm"
                             type="submit"
-                            disabled={isSubmitting || !inputText.trim()}
+                            disabled={isSubmitting || !inputText.trim() || disableSubmit}
                             className={cn(
                                 "h-8 px-3 transition-all rounded-full",
                                 inputText.trim()

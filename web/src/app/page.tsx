@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAnkiStore } from "@/stores/anki-store";
 import { DeckCreationDialogTrigger } from "@/components/dialogs/deck-creation/deck-creation-trigger";
 import { useState } from "react";
-import { DeckTreeNode } from "@/lib/anki";
+import { type DeckTreeNode } from "@/lib/anki";
 export default function Home() {
   const router = useRouter();
   const { expandAllDecks, setHighlightDecks } = useAnkiStore();

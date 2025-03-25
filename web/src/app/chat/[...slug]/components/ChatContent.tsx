@@ -4,7 +4,7 @@ import { db } from "@/local-db";
 import type { Message, ReferencedDeckToChat } from "@/local-db";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useModelStore } from "@/stores/model-store";
-import { ChatMessage, ollamaClient } from "@/lib/ollama";
+import { type ChatMessage, ollamaClient, type OllamaMessageRole } from "@/lib/ollama";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import UserMessage from "./UserMessage";
@@ -105,8 +105,7 @@ const useChatMessages = (chatId: string | null) => {
 /**
  * Custom hook to handle AI inference
  */
-const useAIInference = (chatId: string | null) => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
+const useAIInference = (chatId: string | null, isSubmitting: boolean, setIsSubmitting: (isSubmitting: boolean) => void) => {
     const { chatName } = useChatNavigation();
 
     // Generate a short chat name based on user message
@@ -273,7 +272,7 @@ IMPORTANT:
             setTimeout(() => {
                 void (async () => {
                     try {
-                        await processAIResponse(Number(chatId), model, assistantMessageId);
+                        await processAIResponse(Number(chatId), model, assistantMessageId, setIsSubmitting);
                     } catch (error) {
                         logger.error("Error in background AI processing:", error);
                     }
@@ -281,8 +280,8 @@ IMPORTANT:
             }, 0);
         } catch (error) {
             logger.error("Error starting inference:", error);
-        } finally {
             setIsSubmitting(false);
+        } finally {
         }
     },
         // eslint-disable-next-line
@@ -294,18 +293,20 @@ IMPORTANT:
 /**
  * Process AI response by fetching chat history and streaming completion
  */
-async function processAIResponse(chatId: number, model: string, assistantMessageId: number) {
+async function processAIResponse(chatId: number, model: string, assistantMessageId: number, setIsSubmitting: (isSubmitting: boolean) => void) {
     // Get the current chat history
     const chatHistory = await db.messages
         .where('chatId')
         .equals(chatId)
         .sortBy('createdAt');
 
-    console.log('chatHistory', chatHistory);
+    const transformMessageRole = (chatMessage: Message) => {
+        if (chatMessage.role === 'anki') return 'system';
+        return chatMessage.role;
+    }
 
-    // Format messages for Ollama API
     const formattedMessages = chatHistory.map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'system' | 'anki',
+        role: transformMessageRole(msg) as OllamaMessageRole,
         content: msg.content
     }));
 
@@ -319,7 +320,7 @@ async function processAIResponse(chatId: number, model: string, assistantMessage
     if (ankiMessages.length > 0) {
         deckContext = `\n\nThe following Anki decks have been referenced in this conversation:\n`;
         for (const msg of ankiMessages) {
-            const deckName = msg.content.trim().split('\n')[0]?.trim().split(':')[1]?.trim() || 'Unknown Deck';
+            const deckName = msg.content.trim().split('\n')[0]?.trim().split(':')[1]?.trim() ?? 'Unknown Deck';
             deckContext += `- ${deckName}\n`;
         }
         deckContext += `\nWhen the user asks about cards in these decks, use the information that was shown earlier in the conversation.`;
@@ -344,6 +345,8 @@ async function processAIResponse(chatId: number, model: string, assistantMessage
             }
         }
     );
+
+    setIsSubmitting(false);
 }
 
 /**
@@ -436,11 +439,14 @@ const MessagesList = ({ messages }: { messages: Message[] }) => (
  */
 export const ChatContent = () => {
     const [inputText, setInputText] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { chatId } = useChatNavigation();
     const { messages, isLoading, hasGeneratingMessage } = useChatMessages(chatId);
-    const { isSubmitting, startInference } = useAIInference(chatId);
+    const { startInference } = useAIInference(chatId, isSubmitting, setIsSubmitting);
     const { decks } = useAnkiStore();
     const [cards, setCards] = useState<AnkiCard[]>([]);
+
+
 
     // Define the deck reference extraction function
     const findReferencedDecks = (message: string) => {
@@ -603,6 +609,7 @@ export const ChatContent = () => {
                     setInputText={setInputText}
                     isSubmitting={isSubmitting}
                     onSendMessage={handleSendMessage}
+                    disableSubmit={hasGeneratingMessage}
                 />
             </div>
 
@@ -676,7 +683,6 @@ async function getAnkiDeckContent(deckName: string, decks: DeckTreeNode[]): Prom
 
     // Get the requested deck (without child decks)
     const exactMatchingDecks = findAllMatchingDecks(deckName, decks);
-    console.log("Found exact matching deck:", exactMatchingDecks.map(d => d.fullName));
 
     // If no exact match was found, try fuzzy matching
     if (exactMatchingDecks.length === 0) {
@@ -701,7 +707,6 @@ async function getAnkiDeckContent(deckName: string, decks: DeckTreeNode[]): Prom
         );
 
         if (fuzzyMatch) {
-            console.log(`Using fuzzy match: ${fuzzyMatch} for ${deckName}`);
             return getAnkiDeckContent(fuzzyMatch, decks);
         }
     }

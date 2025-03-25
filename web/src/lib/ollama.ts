@@ -7,6 +7,8 @@ export interface ChatMessage {
     content: string;
 }
 
+export type OllamaMessageRole = 'user' | 'assistant' | 'system';
+
 interface OllamaRequest {
     model: string;
     prompt?: string;

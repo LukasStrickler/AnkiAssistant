@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DeckList } from "@/components/anki/deck-list";
 import { logger } from "@/lib/logger";
 import { type AnkiCard, ankiClient } from "@/lib/anki";
+import { Book } from "lucide-react";
 
 export function AnkiMessage({ content }: { content: string }) {
     const [isOpen, setIsOpen] = useState<string[]>(["1"]);
@@ -16,16 +17,9 @@ export function AnkiMessage({ content }: { content: string }) {
     let deckName = content.trim().split('\n')[0]?.trim();
     // remove "TOP DECK: " from deckName
     deckName = deckName?.replace('TOP DECK: ', '');
-
-    if (!deckName) {
-        return null;
-    }
-
-    if (deckName === 'Unknown Deck') {
-        return null;
-    }
-
     const [cards, setCards] = useState<AnkiCard[]>([]);
+
+
 
     useEffect(() => {
         let isMounted = true;
@@ -34,6 +28,10 @@ export function AnkiMessage({ content }: { content: string }) {
         const loadCards = async () => {
             try {
                 // Pass abort signal to the stream
+                if (!deckName) {
+                    return;
+                }
+
                 const stream = ankiClient.streamDeckCards(deckName, 10, controller.signal);
                 for await (const batch of stream) {
                     if (!isMounted) return;
@@ -57,6 +55,15 @@ export function AnkiMessage({ content }: { content: string }) {
         };
     }, [deckName]);
 
+    if (!deckName) {
+        return null;
+    }
+
+    if (deckName === 'Unknown Deck') {
+        return null;
+    }
+
+
     return (
         <div className="w-full">
             <Accordion
@@ -67,7 +74,10 @@ export function AnkiMessage({ content }: { content: string }) {
             >
                 <AccordionItem value="0" className="border rounded-xl">
                     <AccordionTrigger className="flex items-center justify-between px-4 py-2 hover:no-underline group">
-                        <h2 className="text-lg font-bold text-muted-foreground underline">{deckName}</h2>
+                        <div className="flex items-center gap-2">
+                            <Book className="h-4 w-4 text-primary" />
+                            <h2 className="text-lg font-bold text-muted-foreground underline">{deckName}</h2>
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent className="pt-0 px-4">
                         <DeckList cards={cards} />
