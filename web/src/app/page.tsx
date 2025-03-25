@@ -14,7 +14,7 @@ export default function Home() {
 
   const handleViewDecks = () => {
     // Expand all decks and trigger highlight animation
-    expandAllDecks();
+    // expandAllDecks();
     setHighlightDecks(true);
   };
 
