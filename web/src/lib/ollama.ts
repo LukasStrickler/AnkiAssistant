@@ -10,7 +10,7 @@ export interface ChatMessage {
 export type OllamaMessageRole = 'user' | 'assistant' | 'system';
 
 interface OllamaRequest {
-    model: string;
+    model?: string;
     prompt?: string;
     messages?: ChatMessage[];
     options?: {
@@ -72,12 +72,17 @@ export class OllamaClient {
         this.apiUrl = apiUrl;
     }
 
-    private async request<T>(endpoint: string, params: OllamaRequest): Promise<T> {
-        const response = await fetch(`${this.apiUrl}/api${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
-        });
+    private async request<T>(endpoint: string, params: OllamaRequest, method: 'GET' | 'POST' = 'POST'): Promise<T> {
+        const options: RequestInit = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+
+        if (method === 'POST') {
+            options.body = JSON.stringify(params);
+        }
+
+        const response = await fetch(`${this.apiUrl}/api${endpoint}`, options);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -99,9 +104,13 @@ export class OllamaClient {
     }
 
     async listModels(): Promise<string[]> {
-        const response = await fetch(`${this.apiUrl}/api/tags`);
-        const data = await response.json() as OllamaListResponse;
-        return data.models.map((m) => m.name);
+        try {
+            const data = await this.request<OllamaListResponse>('/tags', {}, 'GET');
+            return data.models.map((m) => m.name);
+        } catch (error) {
+            logger.error('Failed to list models', error);
+            return [];
+        }
     }
 
     async generateChatCompletion(messages: ChatMessage[], model: string, options?: OllamaOptions): Promise<OllamaResponse> {
