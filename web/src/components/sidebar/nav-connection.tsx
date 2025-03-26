@@ -197,9 +197,7 @@ export function NavConnection({
                 </div>
               </div>
             </CardTitle>
-            <Link href="/settings" className="absolute right-2 -top-[1px] p-0.5 m-0.5 rounded hover:bg-neutral-200/20 text-muted-foreground">
-              <Settings className="h-5 w-5" />
-            </Link>
+              <Settings className="absolute right-2 -top-[1px] p-0.5 m-0.5 rounded hover:bg-neutral-200/20 text-muted-foreground" />
           </CardHeader>
           <CardContent
             ref={contentRef}
