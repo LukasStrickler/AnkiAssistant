@@ -201,17 +201,10 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
     async function streamFullOutlineGeneration() {
         updateData({ outline: [] });
         setOutlineDelta("");
-        // reset edit item
         setSelectedEditorOutlineItem(null);
 
         setCurrentStep(GenerationSteps.GENERATING_OUTLINE);
         setCurrentOutlineLoadingState(OutlineLoadingStates.PREPARE);
-
-        let prompt = prompts.find(prompt => prompt.id === data.promptId);
-        if (!prompt) {
-            // select default prompt
-            prompt = prompts.find(prompt => prompt.id === 'default-system')!;
-        }
 
         const userInputContentProcessed = await preprocessInput(data.userInput);
         if (!isValidInput(userInputContentProcessed)) {
@@ -224,125 +217,6 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return;
         }
 
-
-        const rules = `
-        It is of paramount importence, that you follow these rules:
-        1. **Keep it Simple**: Short and simple ideas are easier to remember.
-        2. **Focus on Single Ideas**: Each card should focus on one concept only.
-        3. **Be Specific**: Vague or general knowledge is harder to retain.
-        4. **Use Markdown**: Format the back of the card using markdown.
-        5. **Strictly One Card Per Concept**: Do NOT generate more than one card per concept.
-        6. **Card Type**: Each card must have a type. Examples: ${data.selectedNoteVariants.join(', ')}.
-        7. **Deck Naming Format**: Deck names must follow a hierarchical structure using '::' as separator:
-           - Start with the highest category (e.g., 'Uni')
-           - Follow with sub-categories (e.g., semester, subject, topic)
-           - End with the specific concept name
-           - Example structure: 'Category::Subcategory::Subject::Topic::Concept'
-           Choose or create an appropriate hierarchy based on the content.
-        8. Always use a single string for all the keys in the json object`;
-
-        // get all deck names in a tree structure
-        const getAllDeckNames = (node: DeckTreeNode, level = 0): string[] => {
-            const indent = '  '.repeat(level);
-            const bullet = level === 0 ? '•' : '  •';
-            const names: string[] = [`${indent}${bullet} ${node.fullName}`];
-            if (node.children.length > 0) {
-                node.children.forEach(child => {
-                    names.push(...getAllDeckNames(child, level + 1));
-                });
-            }
-            return names;
-        };
-
-
-        // these decks get injected into the prompt
-        const existingDecks = data.parentDeck ? getAllDeckNames(data.parentDeck)
-            .map(deck => `'${deck}'`)
-            .join(',\n') : '';
-
-        // Get the selected variants from the store and format them as a string
-        const selectedCardTypes = data.selectedNoteVariants
-            .map(id => `'${id}'`)
-            .join(', ');
-
-        const allExamples = [
-            // q&a-system examples
-            {
-                "concept": "Introduction to Economics",
-                "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
-                "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
-                "card_type": "q&a-system"
-            },
-            {
-                "concept": "Solving Quadratic Equations",
-                "key_points": "Quadratic equations can be solved using factoring, completing the square, or the quadratic formula.",
-                "deck": "Math::Algebra::Quadratic Equations::Solving Methods",
-                "card_type": "q&a-system"
-            },
-            // concept-system examples
-            {
-                "concept": "Photosynthesis Process",
-                "key_points": "Plants convert light energy into chemical energy through photosynthesis, producing glucose and oxygen.",
-                "deck": "Science::Biology::Plant Biology::Photosynthesis::Process",
-                "card_type": "concept-system"
-            },
-            {
-                "concept": "Supply Chain Management",
-                "key_points": "The coordination of activities involved in producing and delivering products from suppliers to customers.",
-                "deck": "Business::Operations::Supply Chain::Management",
-                "card_type": "concept-system"
-            },
-            // overview-system examples
-            {
-                "concept": "Python List Comprehension",
-                "key_points": "A concise way to create lists based on existing lists or sequences using a single line of code.",
-                "deck": "Programming::Python::Data Structures::List Comprehension",
-                "card_type": "overview-system"
-            },
-            {
-                "concept": "Classical Music Periods",
-                "key_points": "Overview of major periods: Baroque, Classical, Romantic, and Modern, each with distinct characteristics.",
-                "deck": "Arts::Music::Classical::History::Periods",
-                "card_type": "overview-system"
-            },
-            // definition-system examples
-            {
-                "concept": "Meditation Techniques",
-                "key_points": "Various methods of meditation including mindfulness, focused attention, and loving-kindness meditation.",
-                "deck": "Personal::Wellness::Meditation::Techniques",
-                "card_type": "definition-system"
-            },
-            {
-                "concept": "Quantum Computing Basics",
-                "key_points": "Fundamental principles of quantum computing including qubits, superposition, and quantum entanglement.",
-                "deck": "Technology::Computing::Quantum::Basics",
-                "card_type": "definition-system"
-            },
-            // vocabulary-system examples
-            {
-                "concept": "Spanish Grammar: Ser vs Estar",
-                "key_points": "Two Spanish verbs meaning 'to be' with different uses: Ser for permanent states, Estar for temporary conditions.",
-                "deck": "Languages::Spanish::Grammar::Verbs::Ser vs Estar",
-                "card_type": "vocabulary-system"
-            },
-            {
-                "concept": "Medical Terminology: Cardiovascular System",
-                "key_points": "Key terms related to the heart and blood vessels, including prefixes, suffixes, and root words.",
-                "deck": "Health::Medical::Terminology::Cardiovascular",
-                "card_type": "vocabulary-system"
-            }
-        ];
-
-        // Filter examples to only include selected note types
-        const filteredExamples = allExamples.filter(example =>
-            data.selectedNoteVariants.includes(example.card_type)
-        );
-
-        // Use at most 3 examples to keep the prompt concise
-        const selectedExamples = filteredExamples;
-
-        const exampleOutput = JSON.stringify(selectedExamples);
-
         const model = overviewModel ?? contentModel ?? availableModels[0];
         if (!model) {
             toast({
@@ -354,27 +228,24 @@ export function useDeckCreation(initialData?: Partial<DeckCreationData>): DeckCr
             return;
         }
 
-        logger.info("existingDecks", existingDecks);
-        logger.info("selectedCardTypes", selectedCardTypes);
-
-        const totalPrompt = prompt.systemMessage
-            .replace("{existingDecks}", existingDecks)
-            .replace("{selectedCardTypes}", selectedCardTypes)
-            .replace("{userInput}", userInputContentProcessed)
-            .replace("{exampleOutput}", exampleOutput)
-            .replace("{rules}", rules);
-
-
-        logger.info("totalPrompt", totalPrompt);
-
         setCurrentOutlineLoadingState(OutlineLoadingStates.LOADING_MODEL);
-        await generateOutline(model, totalPrompt, (update) => {
-            //print the prompt
-            updateData({ outline: update.result });
-        }, (delta) => {
-            setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
-            setOutlineDelta(prev => prev + delta);
-        });
+        await generateOutline(
+            model,
+            {
+                selectedNoteVariants: data.selectedNoteVariants,
+                parentDeck: data.parentDeck,
+                promptId: data.promptId,
+                userInput: userInputContentProcessed,
+            },
+            prompts,
+            (update) => {
+                updateData({ outline: update.result });
+            },
+            (delta) => {
+                setCurrentOutlineLoadingState(OutlineLoadingStates.GENERATE);
+                setOutlineDelta(prev => prev + delta);
+            }
+        );
 
         setOutlineDelta("");
 

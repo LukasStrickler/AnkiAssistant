@@ -2,6 +2,8 @@
 import { type OutlineItem } from '@/components/dialogs/deck-creation/types';
 import { OllamaClient, type ChatMessage } from '@/lib/ollama';
 import { logger } from "@/lib/logger";
+import { type DeckTreeNode } from '@/lib/anki';
+import { type PromptTemplate } from '@/stores/prompt-store';
 
 interface PartialOutlineItem {
     partial?: string;
@@ -19,72 +21,126 @@ type OutlineGenerationResult = {
 
 export type StreamCallback = (update: OutlineGenerationResult) => void;
 
+// Add type for examples to avoid repetition
+type ExampleCard = {
+    concept: string;
+    key_points: string;
+    deck: string;
+    card_type: string;
+};
+
+interface GenerateOutlineOptions {
+    selectedNoteVariants: string[];
+    parentDeck?: DeckTreeNode;
+    promptId: string;
+    userInput: string;
+}
+
+function buildOutlinePrompt(options: GenerateOutlineOptions, prompts: PromptTemplate[]): string {
+    const rules = `
+    It is of paramount importance, that you follow these rules:
+    1. **Keep it Simple**: Short and simple ideas are easier to remember.
+    2. **Focus on Single Ideas**: Each card should focus on one concept only.
+    3. **Be Specific**: Vague or general knowledge is harder to retain.
+    4. **Use Markdown**: Format the back of the card using markdown.
+    5. **Strictly One Card Per Concept**: Do NOT generate more than one card per concept.
+    6. **Card Type**: Each card must have a type. Examples: ${options.selectedNoteVariants.join(', ')}.
+    7. **Deck Naming Format**: Deck names must follow a hierarchical structure using '::' as separator:
+       - Start with the highest category (e.g., 'Uni')
+       - Follow with sub-categories (e.g., semester, subject, topic)
+       - End with the specific concept name
+       - Example structure: 'Category::Subcategory::Subject::Topic::Concept'
+       Choose or create an appropriate hierarchy based on the content.
+    8. Always use a single string for all the keys in the json object`;
+
+    // Get deck names in tree structure
+    const getAllDeckNames = (node: DeckTreeNode, level = 0): string[] => {
+        const indent = '  '.repeat(level);
+        const bullet = level === 0 ? '•' : '  •';
+        const names: string[] = [`${indent}${bullet} ${node.fullName}`];
+        if (node.children.length > 0) {
+            node.children.forEach(child => {
+                names.push(...getAllDeckNames(child, level + 1));
+            });
+        }
+        return names;
+    };
+
+    const existingDecks = options.parentDeck ? 
+        getAllDeckNames(options.parentDeck).map(deck => `'${deck}'`).join(',\n') : '';
+
+    const selectedCardTypes = options.selectedNoteVariants
+        .map(id => `'${id}'`)
+        .join(', ');
+
+    const examples = getExamples(options.selectedNoteVariants);
+    const exampleOutput = JSON.stringify(examples);
+
+    // Get prompt template
+    let prompt = prompts.find(p => p.id === options.promptId);
+    if (!prompt) {
+        prompt = prompts.find(p => p.id === 'default-system')!;
+    }
+
+    return prompt.systemMessage
+        .replace("{existingDecks}", existingDecks)
+        .replace("{selectedCardTypes}", selectedCardTypes)
+        .replace("{userInput}", options.userInput)
+        .replace("{exampleOutput}", exampleOutput)
+        .replace("{rules}", rules);
+}
+
+function getExamples(selectedNoteVariants: string[]): ExampleCard[] {
+    const allExamples: ExampleCard[] = [
+        {
+            "concept": "Introduction to Economics",
+            "key_points": "Economics studies how individuals, businesses, and governments allocate resources.",
+            "deck": "Uni::Sem 5::Economics::Basics::Introduction to Economics",
+            "card_type": "q&a-system"
+        },
+        {
+            "concept": "Solving Quadratic Equations",
+            "key_points": "Quadratic equations can be solved using factoring, completing the square, or the quadratic formula.",
+            "deck": "Math::Algebra::Quadratic Equations::Solving Methods",
+            "card_type": "q&a-system"
+        },
+        {
+            "concept": "Photosynthesis Process",
+            "key_points": "Plants convert light energy into chemical energy through photosynthesis, producing glucose and oxygen.",
+            "deck": "Science::Biology::Plant Biology::Photosynthesis::Process",
+            "card_type": "concept-system"
+        },
+        {
+            "concept": "Supply Chain Management",
+            "key_points": "The coordination of activities involved in producing and delivering products from suppliers to customers.",
+            "deck": "Business::Operations::Supply Chain::Management",
+            "card_type": "concept-system"
+        },
+        {
+            "concept": "Medical Terminology: Cardiovascular System",
+            "key_points": "Key terms related to the heart and blood vessels, including prefixes, suffixes, and root words.",
+            "deck": "Health::Medical::Terminology::Cardiovascular",
+            "card_type": "vocabulary-system"
+        }
+    ];
+
+    return allExamples.filter(example =>
+        selectedNoteVariants.includes(example.card_type)
+    );
+}
+
 export async function generateOutline(
     model: string,
-    prompt: string,
+    options: GenerateOutlineOptions,
+    prompts: PromptTemplate[],
     onStreamUpdate?: StreamCallback,
     onDelta?: (delta: string) => void
 ): Promise<OutlineGenerationResult> {
-    logger.info("prompt", prompt);
     logger.info("model", model);
+    
+    const totalPrompt = buildOutlinePrompt(options, prompts);
+    logger.info("totalPrompt", totalPrompt);
 
-    // // just wait 1s then return pre-defined outline
-    // await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // const returnValue = {
-    //     result:
-    //         [
-    //             {
-    //                 "id": 1,
-    //                 "concept": "Introduction",
-    //                 "key_points": "Covers basics of quantum computing concepts including qubits, superposition, and entanglement.",
-    //                 "deck": "Uni::Sem 5::Economics::Basics",
-    //                 "card_type": "Q&A",
-    //                 "status": "outline-review"
-    //             },
-    //             {
-    //                 "id": 2,
-    //                 "concept": "Basics",
-    //                 "key_points": "Provides an overview and fundamental concepts of quantum computing.",
-    //                 "deck": "Uni::Sem 5::Economics::Basics",
-    //                 "card_type": "Definition",
-    //                 "status": "outline-review"
-    //             },
-    //             {
-    //                 "id": 3,
-    //                 "concept": "Quantum Computing Basics",
-    //                 "key_points": "Explains key topics like qubits, superposition, entanglement, and their roles in quantum computing.",
-    //                 "deck": "Uni::Sem 5::Economics::Basics",
-    //                 "card_type": "Definition",
-    //                 "status": "outline-review"
-    //             },
-    //             {
-    //                 "id": 4,
-    //                 "concept": "Qubits and Superposition",
-    //                 "key_points": "Details about qubit states existing simultaneously due to superposition.",
-    //                 "deck": "Uni::Sem 5::Economics::Basics",
-    //                 "card_type": "Definition",
-    //                 "status": "outline-review"
-    //             },
-    //             {
-    //                 "id": 5,
-    //                 "concept": "Entanglement and Parallelism",
-    //                 "key_points": "Explains how entanglement links qubit states for parallel processing optimization.",
-    //                 "deck": "Uni::Sem 5::Economics::Basics",
-    //                 "card_type": "Definition",
-    //                 "status": "outline-review"
-    //             }
-    //         ],
-    //     ItemsWithMissingJsonFields: []
-    // }
-
-    // if (onStreamUpdate) {
-    //     onStreamUpdate(returnValue);
-    // }
-
-    // return returnValue;
-
-    // Initialize Ollama client
     const ollama = new OllamaClient();
 
     return new Promise((resolve) => {
@@ -94,7 +150,6 @@ export async function generateOutline(
             ItemsWithMissingJsonFields: []
         };
 
-        // Format messages for the Ollama API
         const messages: ChatMessage[] = [
             {
                 role: 'system',
@@ -102,13 +157,12 @@ export async function generateOutline(
             },
             {
                 role: 'user',
-                content: prompt
+                content: totalPrompt
             }
         ];
 
         // Our token update callback for streaming
         const handleDelta = (delta: { content: string, done?: boolean }) => {
-            // console.log('Received token:', delta.content);
             currentContent += delta.content;
 
             if (onDelta) {
@@ -117,6 +171,7 @@ export async function generateOutline(
 
             // Process partial content to extract any complete objects
             const partialResult = parsePartialOutline(currentContent);
+            
             // If callback provided, send the update
             if (onStreamUpdate) {
                 onStreamUpdate(partialResult);
@@ -133,11 +188,10 @@ export async function generateOutline(
         ollama.streamChatCompletion(
             messages,
             model,
-            { temperature: 0.7 },  // Moderate temperature for creative but coherent output
+            { temperature: 0.7 },
             handleDelta
         ).catch(error => {
             logger.error("Error streaming from Ollama:", error);
-            // If there's an error, resolve with what we have so far or an empty result
             resolve(result);
         });
     });
