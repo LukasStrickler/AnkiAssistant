@@ -1,5 +1,19 @@
 import { type ConnectionStatus } from "@/types/connection-status";
 import { logger } from "@/lib/logger";
+import { type OutlineItem } from "@/components/dialogs/deck-creation/types";
+import MarkdownIt from 'markdown-it';
+
+// Initialize markdown-it with HTML enabled and other useful features
+const md = new MarkdownIt({
+    html: true,
+    breaks: true,
+    linkify: true,
+    typographer: true
+});
+
+// Ensure list parsing is enabled
+md.enable('list');
+
 interface AnkiRequest {
     action: string;
     version: number;
@@ -18,20 +32,54 @@ export interface DeckTreeNode {
     cardCount: number;
 }
 
-export interface AnkiCard {
-    cardId: number;
+export enum AnkiCardStatus {
+    Anki = 'anki',
+    Generating = 'generating',
+    Generated = 'generated',
+}
+
+export interface BaseAnkiCard {
     deckName: string;
+    modelName: string;
     fields: {
-        Front: { value: string };
-        Back: { value: string };
+        Front: string;
+        Back: string;
     };
+    tags: string[];
+}
+
+export interface AnkiCard extends BaseAnkiCard {
+    cardId: number;
+    status: AnkiCardStatus;
 }
 
 export interface AnkiCardRaw {
     cardId: number;
     deckName: string;
     fields: Record<string, { value: string; order: number }>;
+    modelName: typeof AnkiCardTypes.BASIC[number];
 }
+
+export const AnkiCardTypes = {
+    BASIC: ["Basic", "Einfach"], //Translations
+    CARD_TYPE_NOT_SUPPORTED: "CARD TYPE NOT SUPPORTED"
+} as const;
+
+export type AnkiCardType = (typeof AnkiCardTypes)[keyof typeof AnkiCardTypes];
+
+const MATH_REPLACE = "ANKIASSISTANTMATH";
+const INLINE_CODE_REPLACE = "ANKIASSISTANTCODEINLINE";
+const DISPLAY_CODE_REPLACE = "ANKIASSISTANTCODEDISPLAY";
+
+function escapeHtml(unsafe: string): string {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 export class AnkiClient {
     private apiUrl: string;
 
@@ -120,7 +168,10 @@ export class AnkiClient {
         yield cardIds.map(id => ({
             cardId: id,
             deckName: IdsToDeckName.get(id) ?? '',
-            fields: { Front: { value: '' }, Back: { value: '' } }
+            fields: { Front: '', Back: '' },
+            tags: [],
+            status: AnkiCardStatus.Anki,
+            modelName: ""
         }));
 
         // Process cards in batches
@@ -174,7 +225,23 @@ export class AnkiClient {
         });
 
         const cardMap = new Map<number, AnkiCard>();
-        for (const { cardId, deckName, fields } of cards) {
+        for (const { cardId, deckName, fields, modelName } of cards) {
+            if (!AnkiCardTypes.BASIC.includes(modelName)) {
+                logger.warn(`Card ${cardId} has model ${modelName} which is not supported`, { cardId, deckName, fields, modelName });
+                cardMap.set(cardId, {
+                    cardId,
+                    deckName,
+                    fields: {
+                        Front: AnkiCardTypes.CARD_TYPE_NOT_SUPPORTED,
+                        Back: "Check the logs for more details, contact the developer to add support for this card type."
+                    },
+                    tags: [],
+                    status: AnkiCardStatus.Anki,
+                    modelName: AnkiCardTypes.CARD_TYPE_NOT_SUPPORTED
+                });
+                continue;
+            }
+
             const fieldValues = Object.values(fields);
             const frontField = fieldValues.find(f => f.order === 0);
             const backField = fieldValues.find(f => f.order === 1);
@@ -188,9 +255,12 @@ export class AnkiClient {
                 cardId,
                 deckName,
                 fields: {
-                    Front: { value: frontField.value },
-                    Back: { value: backField.value }
-                }
+                    Front: frontField.value,
+                    Back: backField.value
+                },
+                tags: [],
+                status: AnkiCardStatus.Anki,
+                modelName
             });
         }
         return Array.from(cardMap.values());
@@ -223,7 +293,7 @@ export class AnkiClient {
         card: AnkiCard,
         regex: RegExp
     ): Array<{ src: string; cardId: number }> {
-        return [card.fields.Front.value, card.fields.Back.value]
+        return [card.fields.Front, card.fields.Back]
             .flatMap(fieldContent =>
                 Array.from(fieldContent.matchAll(regex))
                     .map(match => ({
@@ -254,8 +324,8 @@ export class AnkiClient {
         const dataUrl = this.createMediaDataUrl(originalSrc, mediaData);
         const replaceMediaSource = this.createMediaReplacer(originalSrc, dataUrl);
 
-        card.fields.Front.value = replaceMediaSource(card.fields.Front.value);
-        card.fields.Back.value = replaceMediaSource(card.fields.Back.value);
+        card.fields.Front = replaceMediaSource(card.fields.Front);
+        card.fields.Back = replaceMediaSource(card.fields.Back);
     }
 
     /**
@@ -280,8 +350,6 @@ export class AnkiClient {
         const mediaReferenceRegex = new RegExp(`src=["']${escapedSrc}["']`, 'gi');
         return (html: string) => html.replace(mediaReferenceRegex, `src="${replacementUrl}"`);
     }
-
-
 
     private async buildDeckTree(deckNames: string[]): Promise<DeckTreeNode[]> {
         const root: DeckTreeNode = { name: '', children: [], cardCount: 0, fullName: '' };
@@ -331,6 +399,78 @@ export class AnkiClient {
 
         return root.children;
     }
+
+
+    // -------------
+    // Adding Cards
+    // -------------
+    async addCardFromOutline(outline: OutlineItem): Promise<void> {
+        if (!outline.card) {
+            throw new Error("Card is undefined");
+        }
+
+        const card: BaseAnkiCard = {
+            deckName: outline.deck,
+            modelName: "Basic",
+            fields: {
+                Front: convertMarkdownToAnkiHTML(outline.card.front),
+                Back: convertMarkdownToAnkiHTML(outline.card.back)
+            },
+            tags: [outline.card_type]
+        }
+        const noteId = await this.addCard(card, true); // Auto create deck if not present
+        if (!noteId) {
+            throw new Error("Failed to add card");
+        }
+        logger.info("Card added result", { noteId });
+        // get notesInfo to verify that the card was added
+        const notesInfo = await this.request<number[][]>({
+            action: "notesInfo",
+            version: 6,
+            params: { notes: [noteId] }
+        });
+        logger.info("Card added notesInfo", { notesInfo });
+
+        if (!notesInfo.length || !notesInfo[0]) {
+            throw new Error("Failed to find card");
+        }
+    }
+
+    async createDeck(deckName: string): Promise<void> {
+        await this.request<boolean>({
+            action: "createDeck",
+            version: 6,
+            params: { deck: deckName }
+        });
+    }
+
+    async addCard(card: BaseAnkiCard, autoCreateDeck = false): Promise<number | null> {
+        if (autoCreateDeck) {
+            await this.createDeck(card.deckName);
+        }
+
+        const result = await this.request<number>({
+            action: "addNote",
+            version: 6,
+            params: {
+                note: {
+                    deckName: card.deckName,
+                    modelName: card.modelName,
+                    fields: card.fields,
+                    tags: [...card.tags, "AnkiAssistant"],
+                    options: {
+                        allowDuplicate: false,
+                        duplicateScope: "deck",
+                        duplicateScopeOptions: {
+                            deckName: card.deckName
+                        }
+                    }
+                }
+            }
+        });
+        return result;
+    }
+
 }
 
 // Create a default instance
@@ -339,4 +479,66 @@ export const ankiClient = new AnkiClient();
 // Add this utility function outside the class
 function escapeRegExp(string: string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Converts Markdown and LaTeX content to Anki-compatible HTML format
+ * @param content The markdown content with optional LaTeX math expressions
+ * @returns HTML string with properly formatted LaTeX for Anki
+ */
+export function convertMarkdownToAnkiHTML(content: string): string {
+    // First, we need to protect math expressions from markdown processing
+    const mathExpressions: string[] = [];
+    const inlineCodeExpressions: string[] = [];
+    const displayCodeExpressions: string[] = [];
+
+    // Save math expressions and replace with placeholders
+    content = content.replace(/\$\$([\s\S]*?)\$\$/g, (_match, latex) => {
+        mathExpressions.push(`\\[${latex}\\]`);
+        return MATH_REPLACE;
+    });
+
+    content = content.replace(/\$([^\$]+)\$/g, (_match, latex) => {
+        mathExpressions.push(`\\(${latex}\\)`);
+        return MATH_REPLACE;
+    });
+
+    // Save code blocks and replace with placeholders
+    content = content.replace(/```([\s\S]*?)```/g, (_match, code: string) => {
+        displayCodeExpressions.push(code);
+        return DISPLAY_CODE_REPLACE;
+    });
+
+    content = content.replace(/`([^`]+)`/g, (_match, code: string) => {
+        inlineCodeExpressions.push(code);
+        return INLINE_CODE_REPLACE;
+    });
+
+    // Convert markdown to HTML
+    content = md.render(content);
+
+    // Restore math expressions with proper HTML escaping
+    mathExpressions.forEach(math => {
+        content = content.replace(
+            MATH_REPLACE,
+            escapeHtml(math)
+        );
+    });
+
+    // Restore code blocks with proper formatting
+    displayCodeExpressions.forEach(code => {
+        content = content.replace(
+            DISPLAY_CODE_REPLACE,
+            `<pre><code>${escapeHtml(code)}</code></pre>`
+        );
+    });
+
+    inlineCodeExpressions.forEach(code => {
+        content = content.replace(
+            INLINE_CODE_REPLACE,
+            `<code>${escapeHtml(code)}</code>`
+        );
+    });
+
+    return content.trim();
 }

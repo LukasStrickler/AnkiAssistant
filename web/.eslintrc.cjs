@@ -2,7 +2,10 @@
 const config = {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": true
+    "project": "tsconfig.json",
+    "tsconfigRootDir": __dirname,
+    "ecmaVersion": "latest",
+    "sourceType": "module"
   },
   "plugins": [
     "@typescript-eslint",
@@ -14,6 +17,7 @@ const config = {
     "plugin:@typescript-eslint/stylistic-type-checked"
   ],
   "rules": {
+    "react-hooks/exhaustive-deps": "off",
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/consistent-type-imports": [
@@ -59,4 +63,5 @@ const config = {
     ]
   }
 }
+
 module.exports = config;

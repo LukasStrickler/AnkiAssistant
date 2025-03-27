@@ -13,10 +13,6 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/h
 import { ankiClient } from '@/lib/anki';
 import DeckChat from "./deck-chat";
 
-export function deckToPath(deckFullName: string) {
-    return `/deck/${deckFullName.split('::').map(encodeURIComponent).join('/')}`;
-}
-
 function Breadcrumbs({ items }: { items: { title: React.ReactNode, href: string | null }[] }) {
     return (
         <Breadcrumb>

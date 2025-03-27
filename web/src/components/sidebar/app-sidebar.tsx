@@ -18,6 +18,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import Link from "next/link"
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
@@ -25,7 +27,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
                   <WalletCardsIcon className="size-6" />
                 </div>
@@ -37,21 +39,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span className="truncate text-xs">Local Instance</span>
                   </div>
                 }
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0">
+      <SidebarContent className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden max-w-full">
         <div className="flex-1 min-h-0">
           <NavMain />
         </div>
-        <Separator className="mx-auto py-0.5 rounded-xl max-w-[90%]" />
-        <div className="flex-1 min-h-0">
+        <Separator className="mx-auto py-0.5 rounded-xl max-w-[95%]" />
+        <div className="flex-1 min-h-0 mt-1">
           <NavDecks />
         </div>
       </SidebarContent>
-      <SidebarFooter className="pb-0 gap-0">
+      <SidebarFooter className="pb-0 gap-0 pt-1">
         <NavConnection />
       </SidebarFooter>
     </Sidebar>

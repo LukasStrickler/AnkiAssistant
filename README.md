@@ -23,43 +23,26 @@ Here's a concise overview of AnkiAssistant's tech stack, with links to each tech
 ```bash
 AnkiAssistant/
 ├── models/          # Model Development (Python)
-│   ├── benchmark/       # Performance tracking
-│   │   ├── results/         # Benchmark outputs
-│   │   ├── scripts/         # Benchmarking scripts
-│   │   └── config.yaml      # Benchmark settings
-│   ├── data/            # Data management
-│   │   ├── processed/       # Cleaned/transformed data
-│   │   ├── raw/             # Raw datasets
-│   │   ├── scripts/         # Scripts for processing
-│   │   └── synthetic/       # Generated training data
-│   ├── models/          # Trained models
-│   ├── notebooks/       # Jupyter notebooks
-│   ├── tests/           # Model testing
-│   │
-│   ├── .env             # Local environment variables
-│   ├── CONTRIBUTING.md  # Model contribution guidelines
-│   ├── pyproject.toml   # Poetry dependencies
-│   ├── README.md        # Documentation
-│   └── registry.json    # Model registry
+│   └── CONTRIBUTING.md  # Model contribution guidelines
 │
 └── web/             # Webpage (TypeScript)
-    ├── app/             # App Router
-    │   ├── .../             # App-specific routing 
-    │   ├── api/             # Server API endpoints
-    │   ├── local-api        # Local API endpoints
-    │   └── components/      # Components
-    ├── server/          # Backend core
-    │   ├── api/             # API Code
-    │   │   ├── routers/         # tRPC routers
-    │   │   └── trpc/            # tRPC core
-    │   ├── auth/            # Authentication setup
-    │   └── db/              # Database configuration
-    │       ├── schema/          # DB schema (DrizzleORM)
-    │       └── index.ts         # DB connection
+    ├── src/             # Source code
+    │   ├── app/             # Next.js App Router
+    │   ├── components/      # UI Components
+    │   ├── hooks/           # Custom React hooks
+    │   ├── lib/             # Utility functions and libraries
+    │   ├── server/          # Backend server code
+    │   ├── stores/          # State management
+    │   ├── styles/          # Global styles
+    │   ├── trpc/            # tRPC setup
+    │   └── types/           # TypeScript type definitions
     │
-    ├── .env              # Local environment variables
-    ├── package.json      # Critical dependencies
-    └── README.md         # Environment variables
+    ├── public/          # Static assets
+    ├── docs/            # Documentation
+    ├── .env             # Local environment variables
+    ├── .env.example     # Example environment variables
+    ├── package.json     # Dependencies and scripts
+    └── README.md        # Web-specific documentation
 ```
 ## 🚀 Getting Started
 To set up and run AnkiAssistant locally, follow these steps:
@@ -78,9 +61,9 @@ npm install
 ```
 
 ### **3. Set Up Environment Variables**
-Copy the `.env.test` file and fill out all required variables:
+Copy the `.env.example` file and fill out all required variables:
 ```bash
-cp .env.test .env
+cp .env.example .env
 ```
 
 ### **4. Start the Development Server**

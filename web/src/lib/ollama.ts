@@ -3,12 +3,14 @@ import { z } from "zod";
 import { type ConnectionStatus } from "@/types/connection-status";
 
 export interface ChatMessage {
-    role: 'user' | 'assistant' | 'system';
+    role: 'user' | 'assistant' | 'system' | 'anki';
     content: string;
 }
 
+export type OllamaMessageRole = 'user' | 'assistant' | 'system';
+
 interface OllamaRequest {
-    model: string;
+    model?: string;
     prompt?: string;
     messages?: ChatMessage[];
     options?: {
@@ -52,6 +54,7 @@ export interface ChatMessageDelta {
 interface OllamaOptions {
     temperature?: number;
     top_p?: number;
+    keep_alive?: number; // Duration in seconds to keep model in memory
     // Include other options that might be used
 }
 
@@ -69,12 +72,17 @@ export class OllamaClient {
         this.apiUrl = apiUrl;
     }
 
-    private async request<T>(endpoint: string, params: OllamaRequest): Promise<T> {
-        const response = await fetch(`${this.apiUrl}/api${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
-        });
+    private async request<T>(endpoint: string, params: OllamaRequest, method: 'GET' | 'POST' = 'POST'): Promise<T> {
+        const options: RequestInit = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+
+        if (method === 'POST') {
+            options.body = JSON.stringify(params);
+        }
+
+        const response = await fetch(`${this.apiUrl}/api${endpoint}`, options);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -96,16 +104,25 @@ export class OllamaClient {
     }
 
     async listModels(): Promise<string[]> {
-        const response = await fetch(`${this.apiUrl}/api/tags`);
-        const data = await response.json() as OllamaListResponse;
-        return data.models.map((m) => m.name);
+        try {
+            const data = await this.request<OllamaListResponse>('/tags', {}, 'GET');
+            return data.models.map((m) => m.name);
+        } catch (error) {
+            logger.error('Failed to list models', error);
+            return [];
+        }
     }
 
-    async generateChatCompletion(messages: ChatMessage[], model: string, options?: object): Promise<OllamaResponse> {
+    async generateChatCompletion(messages: ChatMessage[], model: string, options?: OllamaOptions): Promise<OllamaResponse> {
+        const finalOptions = {
+            ...options,
+            keep_alive: options?.keep_alive ?? 300 // Default 5 minutes
+        };
+
         return this.request<OllamaResponse>('/chat', {
             model,
             messages,
-            options
+            options: finalOptions
         });
     }
 
@@ -113,10 +130,17 @@ export class OllamaClient {
         messages: ChatMessage[],
         model: string,
         options: OllamaOptions,
-        onDelta: (delta: ChatMessageDelta) => void
+        onDelta: (delta: ChatMessageDelta) => void,
+        abortController?: AbortController
     ): Promise<void> {
         try {
-            const response = await fetch(`${this.apiUrl}/api/chat`, {
+            // Add default keep_alive of 5 minutes (300 seconds)
+            const finalOptions = {
+                ...options,
+                keep_alive: options.keep_alive ?? 300
+            };
+
+            const requestOptions: RequestInit = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -124,10 +148,17 @@ export class OllamaClient {
                 body: JSON.stringify({
                     model,
                     messages,
-                    options,
+                    options: finalOptions,
                     stream: true
                 }),
-            });
+            };
+
+            // Add signal to the request if abortController is provided
+            if (abortController) {
+                requestOptions.signal = abortController.signal;
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/chat`, requestOptions);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -166,28 +197,28 @@ export class OllamaClient {
         }
     }
 
-    async generateChatCompletionStream(
-        messages: ChatMessage[],
-        model: string,
-        options: OllamaOptions
-    ): Promise<ReadableStream<string>> {
-        const response = await fetch('http://localhost:11434/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model,
-                messages,
-                options,
-                stream: true
-            })
-        });
+    // async generateChatCompletionStream(
+    //     messages: ChatMessage[],
+    //     model: string,
+    //     options: OllamaOptions
+    // ): Promise<ReadableStream<string>> {
+    //     const response = await fetch('http://localhost:11434/api/chat', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //             model,
+    //             messages,
+    //             options,
+    //             stream: true
+    //         })
+    //     });
 
-        if (!response.ok || !response.body) {
-            throw new Error('Failed to generate response');
-        }
+    //     if (!response.ok || !response.body) {
+    //         throw new Error('Failed to generate response');
+    //     }
 
-        return response.body.pipeThrough(new TextDecoderStream());
-    }
+    //     return response.body.pipeThrough(new TextDecoderStream());
+    // }
 }
 
 // Create a default instance

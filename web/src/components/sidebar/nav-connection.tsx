@@ -1,6 +1,8 @@
 "use client"
 import * as React from "react"
-import { ChevronDown, Loader2 } from "lucide-react"
+import { ChevronDown, Loader2, Settings } from "lucide-react"
+import Link from "next/link"
+import { useState, useEffect, useRef } from "react"
 
 import {
   SidebarGroup,
@@ -38,7 +40,9 @@ export function NavConnection({
     setContentModel,
     setAvailableModels,
     setOllamaStatus,
-    setAnkiStatus
+    setAnkiStatus,
+    chatModel,
+    setChatModel
   } = useModelStore()
 
   const prevStatuses = React.useRef({
@@ -46,7 +50,28 @@ export function NavConnection({
     anki: ankiStatus
   });
 
-  React.useEffect(() => {
+  // Start collapsed by default.
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('sidebarOpen');
+    if (stored !== null) {
+      if (stored === 'true') {
+        // Delay setting open to let the initial render show the collapsed state,
+        // then animate to open.
+        setTimeout(() => setMenuOpen(true), 50);
+      } else {
+        setMenuOpen(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', menuOpen.toString());
+  }, [menuOpen]);
+
+  // eslint-disable-next-line
+  useEffect(() => {
     const fetchStatus = async () => {
       const newAnkiStatus = await ankiClient.getConnectionStatus()
       const newOllamaStatus = await ollamaClient.getConnectionStatus()
@@ -89,10 +114,12 @@ export function NavConnection({
     }, (ollamaStatus === 'disconnected' || ankiStatus === 'disconnected') ? 1000 : 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  },
+    // eslint-disable-next-line
+    [])
 
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadModels = async () => {
       if (ollamaStatus === 'connected') {
         const models = await ollamaClient.listModels()
@@ -104,19 +131,55 @@ export function NavConnection({
         if (!contentModel) {
           setContentModel(models[0] ?? "No models available")
         }
+        if (!chatModel) {
+          setChatModel(models[0] ?? "No models available")
+        }
       }
     }
 
     void loadModels()
-  }, [ollamaStatus, overviewModel, contentModel, setOverviewModel, setContentModel, setAvailableModels])
+  }, [ollamaStatus, overviewModel, contentModel, chatModel, setOverviewModel, setContentModel, setChatModel, setAvailableModels])
 
+  // Set up a ref and state for animating the height of the content.
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState("0px");
+
+  useEffect(() => {
+    if (contentRef.current) {
+      if (menuOpen) {
+        // Set the height to the scrollHeight to animate open.
+        setHeight(`${contentRef.current.scrollHeight + 12}px`);
+      } else {
+        // When closing, set the height to the current scrollHeight, then transition to 0 immediately.
+        setHeight(`${contentRef.current.scrollHeight}px`);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setHeight("0px");
+          });
+        });
+      }
+    }
+  }, [menuOpen]);
+
+  // Disable natural browser scrollbars when the sidebar menu is open
+  React.useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
 
   return (
     <SidebarGroup {...props} className={cn("p-0", props.className)}>
       <SidebarGroupContent>
         <Card className="w-full border-none shadow-sm">
-          <CardHeader className="flex items-left justify-between px-2 pb-1 pt-2">
-            <CardTitle className="text-sm text-muted-foreground">
+          <CardHeader className={cn(
+            "relative flex items-center justify-between px-4 pb-1 pt-1",
+          )}>
+            <button onClick={() => setMenuOpen(prev => !prev)} className="absolute left-2 top-[3px] p-0.5 m-0.5 rounded hover:bg-neutral-200/20">
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${menuOpen ? '' : '-rotate-90'}`} />
+              <span className="sr-only">Toggle Menu</span>
+            </button>
+
+            <CardTitle className="text-sm text-muted-foreground flex items-center justify-center relative" style={{ top: "-4px" }}>
               <div className="flex justify-center items-center space-x-2">
                 <div className="flex items-center">
                   {ollamaStatus === 'loading' ?
@@ -134,9 +197,38 @@ export function NavConnection({
                 </div>
               </div>
             </CardTitle>
+              <Settings className="absolute right-2 -top-[1px] p-0.5 m-0.5 rounded  text-muted-foreground"/>
           </CardHeader>
-          <CardContent className="p-2">
+          <CardContent
+            ref={contentRef}
+            style={{ height, transition: 'height 500ms ease, padding 500ms ease' }}
+            className={cn("overflow-hidden", menuOpen ? "px-4 py-2" : "px-8 py-0")}
+          >
             <SidebarMenu>
+              <SidebarMenuItem className="group relative">
+                <div className="flex w-full items-center gap-2 rounded-md p-1">
+                  <span>Chat</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="ml-auto flex items-center gap-1">
+                      <span className="truncate text-muted-foreground">
+                        {chatModel ?? 'Select model'}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48 h-auto overflow-visible">
+                      {availableModels.map((model) => (
+                        <DropdownMenuItem
+                          key={model}
+                          onSelect={() => setChatModel(model)}
+                        >
+                          {model}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </SidebarMenuItem>
+
               <SidebarMenuItem className="group relative">
                 <div className="flex w-full items-center gap-2 rounded-md p-1">
                   <span>Overview</span>
@@ -147,13 +239,11 @@ export function NavConnection({
                       </span>
                       <ChevronDown className="h-4 w-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-48">
+                    <DropdownMenuContent className="w-48 h-auto overflow-visible">
                       {availableModels.map((model) => (
                         <DropdownMenuItem
                           key={model}
-                          onSelect={() => {
-                            setOverviewModel(model)
-                          }}
+                          onSelect={() => setOverviewModel(model)}
                         >
                           {model}
                         </DropdownMenuItem>
@@ -173,7 +263,7 @@ export function NavConnection({
                       </span>
                       <ChevronDown className="h-4 w-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-48">
+                    <DropdownMenuContent className="w-48 h-auto overflow-visible">
                       {availableModels.map((model) => (
                         <DropdownMenuItem
                           key={model}
@@ -190,7 +280,7 @@ export function NavConnection({
           </CardContent>
         </Card>
       </SidebarGroupContent>
-    </SidebarGroup>
+    </SidebarGroup >
   )
 }
 
