@@ -1,9 +1,8 @@
-Description of Tests, Best Practices for PRs
-
-|-- models
-    |-- CONTRIBUTING.md
-    |-- CardMaker.py
-    |-- decks.json
-    |-- test.py
-    |-- mdFiles
-    |-- runs
+AnkiAssistant/
+├── models/          # Model Development (Python)
+│   ├── mdFiles/    # Educational markdown content
+│   ├── runs/       # Model run outputs and generated cards
+│   ├── CardMakerFin.py  # Card generation script
+│   ├── dataset.json     # Training data for card generation
+│   ├── decks.json      # Available flashcard decks
+│   └── CONTRIBUTING.md  # Model contribution guidelines
