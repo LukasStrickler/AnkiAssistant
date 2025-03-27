@@ -1,0 +1,80 @@
+[
+    {
+        "concept": "Introduction to Machine Learning",
+        "key_points": "Machine learning (ML) enables computers to learn patterns from data without explicit programming.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Introduction",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Supervised Learning",
+        "key_points": "A type of ML where models are trained on labeled data; example: predicting house prices.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Supervised Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Unsupervised Learning",
+        "key_points": "A type of ML that finds patterns in unlabeled data; example: customer segmentation.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Unsupervised Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Reinforcement Learning",
+        "key_points": "A type of ML where models learn by interacting with environments and receiving rewards or penalties.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Reinforcement Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Training Data",
+        "key_points": "Data used to train a model; the model learns from this data to make predictions.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Training Data",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Testing Data",
+        "key_points": "Data used to evaluate how well a trained model performs on unseen examples.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Testing Data",
+        "card_type": "Definition"
+    },
+    {
+        "concept": "Features vs Labels",
+        "key_points": "Features are input variables, while labels are the target output; example: predicting house prices.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Features and Labels",
+        "card_type": "Comparison"
+    },
+    {
+        "concept": "Overfitting vs Underfitting",
+        "key_points": "Overfitting happens when a model captures noise in training data; underfitting is when the model doesn't capture underlying patterns.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Overfitting and Underfitting",
+        "card_type": "Comparison"
+    },
+    {
+        "concept": "Linear Regression",
+        "key_points": "A statistical method used for predictive analysis; predicts a numerical value based on input features.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Linear Regression",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Decision Trees",
+        "key_points": "A tree-like model used for classification and regression; each internal node represents a decision.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Decision Trees",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Neural Networks",
+        "key_points": "A machine learning model inspired by the human brain; used for complex tasks like image and speech recognition.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Neural Networks",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "concept": "Steps in Machine Learning Project",
+        "key_points": "1. Define the problem, 2. Gather data, 3. Explore and clean data, 4. Choose model, 5. Train model, 6. Evaluate and deploy.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Process::Steps in Machine Learning Project",
+        "card_type": "Enumeration"
+    },
+    {
+        "concept": "Tools and Libraries",
+        "key_points": "Scikit-learn for machine learning, TensorFlow and Keras for deep learning, PyTorch for neural networks.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Tools and Libraries",
+        "card_type": "Enumeration"
+    }
+]

@@ -1,0 +1,80 @@
+[
+    {
+        "front": "What is Machine Learning?",
+        "back": "Machine learning (ML) refers to a method of data analysis that allows computers to learn patterns from data without explicit programming.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Introduction",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Supervised Learning?",
+        "back": "Supervised Learning is a type of Machine Learning where models are trained on labeled data, such as predicting house prices.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Supervised Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is Unsupervised Learning?",
+        "back": "Unsupervised learning is a type of machine learning that finds patterns in unlabeled data, such as customer segmentation.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Unsupervised Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is Reinforcement Learning?",
+        "back": "Reinforcement Learning (RL) is a type of Machine Learning where models learn by interacting with environments and receiving rewards or penalties.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Types of Machine Learning::Reinforcement Learning",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is Training Data?",
+        "back": "Training data refers to the data used to train a machine learning model. The model learns from this data, using it as an example to make predictions.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Training Data",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What is Testing Data?",
+        "back": "Testing data refers to the data used to evaluate how well a trained model performs on unseen examples.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Testing Data",
+        "card_type": "Definition"
+    },
+    {
+        "front": "What are Features and Labels in Machine Learning?",
+        "back": "Features are input variables, while labels are the target output. For example, when predicting house prices, features could be the number of rooms, square footage, location, etc., and the label would be the predicted price.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Features and Labels",
+        "card_type": "Comparison"
+    },
+    {
+        "front": "What is Overfitting and Underfitting?",
+        "back": "Overfitting occurs when a model captures noise in training data, meaning it performs well on the training set but poorly on unseen data. On the other hand, underfitting is when the model doesn't capture underlying patterns in the data, resulting in poor performance both on the training and test sets.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Fundamentals::Overfitting and Underfitting",
+        "card_type": "Comparison"
+    },
+    {
+        "front": "What is Linear Regression?",
+        "back": "Linear Regression is a statistical method used for predictive analysis. It predicts a numerical value based on input features.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Linear Regression",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What is a Decision Tree?",
+        "back": "A Decision Tree is a tree-like model used for both classification and regression tasks. Each internal node of the tree represents a decision based on an attribute, each branch represents the outcome of that decision, and leaf nodes represent the final output.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Decision Trees",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What are Neural Networks?",
+        "back": "Neural Networks are machine learning models inspired by the human brain, used for complex tasks like image and speech recognition.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Algorithms::Neural Networks",
+        "card_type": "Explain Yourself"
+    },
+    {
+        "front": "What are the steps in a Machine Learning Project?",
+        "back": "1. Define the problem\n2. Gather data\n3. Explore and clean data\n4. Choose model\n5. Train model\n6. Evaluate and deploy.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Process::Steps in Machine Learning Project",
+        "card_type": "Enumeration"
+    },
+    {
+        "front": "Which tools and libraries are commonly used for machine learning, deep learning, and neural networks?",
+        "back": "1. Scikit-learn - A popular library for machine learning tasks.\n2. TensorFlow - An open-source library for numerical computation with a focus on large-scale machine learning.\n3. Keras - A high-level neural networks API, written in Python and capable of running on top of TensorFlow.\n4. PyTorch - A open-source machine learning library based on the Torch library, used for applications such as computer vision and natural language processing.",
+        "deck": "Uni::Sem 5::Machine Learning Basics::Tools and Libraries",
+        "card_type": "Enumeration"
+    }
+]
