@@ -23,6 +23,11 @@ Here's a concise overview of AnkiAssistant's tech stack, with links to each tech
 ```bash
 AnkiAssistant/
 ├── models/          # Model Development (Python)
+│   ├── mdFiles/    # Educational markdown content
+│   ├── runs/       # Model run outputs and generated cards
+│   ├── CardMakerFin.py  # Card generation script
+│   ├── dataset.json     # Training data for card generation
+│   ├── decks.json      # Available flashcard decks (hard coded)
 │   └── CONTRIBUTING.md  # Model contribution guidelines
 │
 └── web/             # Webpage (TypeScript)
