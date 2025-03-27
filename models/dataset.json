@@ -1,0 +1,387 @@
+[
+    {
+      "input": "The mitochondria is the powerhouse of the cell.",
+      "card": {
+        "Front": "What is the powerhouse of the cell?",
+        "Back": "The mitochondria."
+      }
+    },
+    {
+      "input": "Photosynthesis occurs in the chloroplasts of plant cells, converting sunlight into energy.",
+      "card": {
+        "Front": "Where does photosynthesis occur, and what does it do?",
+        "Back": "Photosynthesis occurs in the chloroplasts, converting sunlight into energy."
+      }
+    },
+    {
+      "input": "Newton's first law states that an object in motion stays in motion unless acted upon by an external force.",
+      "card": {
+        "Front": "What does Newton's first law state?",
+        "Back": "An object in motion stays in motion unless acted upon by an external force."
+      }
+    },
+    {
+      "input": "A mammal is a warm-blooded animal with hair or fur that typically gives birth to live young.",
+      "card": {
+        "Front": "What defines a mammal?",
+        "Back": "A warm-blooded animal with hair or fur that typically gives birth to live young."
+      }
+    },
+    {
+      "input": "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides.",
+      "card": {
+        "Front": "What does the Pythagorean theorem state?",
+        "Back": "In a right triangle, the square of the hypotenuse equals the sum of the squares of the other two sides."
+      }
+    },
+    {
+      "input": "Ecosystems are communities of living organisms interacting with their physical environment.",
+      "card": {
+        "Front": "What is an ecosystem?",
+        "Back": "A community of living organisms interacting with their physical environment."
+      }
+    },
+    {
+      "input": "H2O, or water, is a molecule composed of two hydrogen atoms and one oxygen atom.",
+      "card": {
+        "Front": "What is H2O composed of?",
+        "Back": "Two hydrogen atoms and one oxygen atom."
+      }
+    },
+    {
+      "input": "The capital of France is Paris, known for landmarks like the Eiffel Tower and the Louvre.",
+      "card": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris, known for landmarks like the Eiffel Tower and the Louvre."
+      }
+    },
+    {
+      "input": "Gravity is the force that attracts two bodies toward each other, proportional to their masses and inversely proportional to the square of the distance between them.",
+      "card": {
+        "Front": "What is gravity?",
+        "Back": "The force attracting two bodies toward each other, proportional to their masses and inversely proportional to the square of the distance."
+      }
+    },
+    {
+      "input": "DNA, or deoxyribonucleic acid, is the molecule that carries genetic information in living organisms.",
+      "card": {
+        "Front": "What is DNA?",
+        "Back": "Deoxyribonucleic acid, the molecule carrying genetic information in living organisms."
+      }
+    },
+    {
+      "input": "In accounting, assets are resources owned by a company that have economic value.",
+      "card": {
+        "Front": "What are assets in accounting?",
+        "Back": "Resources owned by a company that have economic value."
+      }
+    },
+    {
+      "input": "In programming, a variable is a container for storing data values.",
+      "card": {
+        "Front": "What is a variable in programming?",
+        "Back": "A container for storing data values."
+      }
+    },
+    {
+      "input": "Bonjour is the French word for 'Hello'.",
+      "card": {
+        "Front": "What is the French word for 'Hello'?",
+        "Back": "Bonjour."
+      }
+    },
+    {
+      "input": "In Python, the 'def' keyword is used to define a function.",
+      "card": {
+        "Front": "What keyword is used to define a function in Python?",
+        "Back": "The 'def' keyword."
+      }
+    },
+    {
+      "input": "The control process in management includes planning, monitoring, and adjusting organizational activities.",
+      "card": {
+        "Front": "What are the steps in the control process in management?",
+        "Back": "Planning, monitoring, and adjusting organizational activities."
+      }
+    },
+    {
+      "input": "The Spanish word for 'Thank you' is 'Gracias'.",
+      "card": {
+        "Front": "What is the Spanish word for 'Thank you'?",
+        "Back": "Gracias."
+      }
+    },
+    {
+      "input": "A function in mathematics is a relation where each input has exactly one output.",
+      "card": {
+        "Front": "What is a function in mathematics?",
+        "Back": "A relation where each input has exactly one output."
+      }
+    },
+    {
+      "input": "An HTTP status code 404 means 'Not Found'.",
+      "card": {
+        "Front": "What does HTTP status code 404 mean?",
+        "Back": "Not Found."
+      }
+    },
+    {
+      "input": "The Great Wall of China was built to protect against invasions and raids from nomadic groups in ancient times.",
+      "card": {
+        "Front": "Why was the Great Wall of China built?",
+        "Back": "To protect against invasions and raids from nomadic groups in ancient times."
+      }
+    },
+    {
+      "input": "In JavaScript, 'const' is used to declare a variable whose value cannot be reassigned.",
+      "card": {
+        "Front": "What does 'const' do in JavaScript?",
+        "Back": "It declares a variable whose value cannot be reassigned."
+      }
+    },
+    {
+      "input": "The Renaissance was a period of cultural, artistic, political, and economic 'rebirth' following the Middle Ages.",
+      "card": {
+        "Front": "What was the Renaissance?",
+        "Back": "A period of cultural, artistic, political, and economic 'rebirth' following the Middle Ages."
+      }
+    },
+    {
+      "input": "In statistics, the median is the middle value when a data set is ordered from least to greatest.",
+      "card": {
+        "Front": "What is the median in statistics?",
+        "Back": "The middle value when a data set is ordered from least to greatest."
+      }
+    },
+    {
+      "input": "An algorithm is a step-by-step procedure for solving a problem or performing a task.",
+      "card": {
+        "Front": "What is an algorithm?",
+        "Back": "A step-by-step procedure for solving a problem or performing a task."
+      }
+    },
+    {
+      "input": "The Spanish word for 'Goodbye' is 'Adiós'.",
+      "card": {
+        "Front": "What is the Spanish word for 'Goodbye'?",
+        "Back": "Adiós."
+      }
+    },
+    {
+      "input": "An internal control system in accounting ensures accurate and reliable financial reporting.",
+      "card": {
+        "Front": "What does an internal control system ensure in accounting?",
+        "Back": "Accurate and reliable financial reporting."
+      }
+    },
+    {
+      "input": "In biology, osmosis is the diffusion of water across a semipermeable membrane.",
+      "card": {
+        "Front": "What is osmosis in biology?",
+        "Back": "The diffusion of water across a semipermeable membrane."
+      }
+    },
+    {
+      "input": "In computer science, a stack is a data structure that follows the Last In, First Out (LIFO) principle.",
+      "card": {
+        "Front": "What is a stack in computer science?",
+        "Back": "A data structure that follows the Last In, First Out (LIFO) principle."
+      }
+    },
+    {
+      "input": "The Treaty of Versailles was signed in 1919, marking the end of World War I.",
+      "card": {
+        "Front": "When was the Treaty of Versailles signed, and what did it signify?",
+        "Back": "It was signed in 1919 and marked the end of World War I."
+      }
+    },
+    {
+      "input": "The boiling point of water at sea level is 100 degrees Celsius.",
+      "card": {
+        "Front": "What is the boiling point of water at sea level?",
+        "Back": "100 degrees Celsius."
+      }
+    },
+    {
+      "input": "In geometry, a polygon with four sides is called a quadrilateral.",
+      "card": {
+        "Front": "What is a polygon with four sides called?",
+        "Back": "A quadrilateral."
+      }
+    },
+    {
+      "input": "The Spanish word for 'Please' is 'Por favor'.",
+      "card": {
+        "Front": "What is the Spanish word for 'Please'?",
+        "Back": "Por favor."
+      }
+    },
+    {
+      "input": "The human brain has approximately 86 billion neurons.",
+      "card": {
+        "Front": "How many neurons does the human brain have approximately?",
+        "Back": "Approximately 86 billion neurons."
+      }
+    },
+    {
+      "input": "The capital city of Japan is Tokyo, known for its modernity and rich cultural heritage.",
+      "card": {
+        "Front": "What is the capital city of Japan?",
+        "Back": "Tokyo, known for its modernity and rich cultural heritage."
+      }
+    },
+    {
+      "input": "In English grammar, a noun is a word that represents a person, place, thing, or idea.",
+      "card": {
+        "Front": "What is a noun in English grammar?",
+        "Back": "A word that represents a person, place, thing, or idea."
+      }
+    },
+    {
+      "input": "The chemical symbol for gold is 'Au'.",
+      "card": {
+        "Front": "What is the chemical symbol for gold?",
+        "Back": "'Au'."
+      }
+    },
+    {
+      "input": "The Cold War was a period of political tension between the Soviet Union and the United States after World War II.",
+      "card": {
+        "Front": "What was the Cold War?",
+        "Back": "A period of political tension between the Soviet Union and the United States after World War II."
+      }
+    },
+    {
+      "input": "The speed of light in a vacuum is approximately 299,792 kilometers per second.",
+      "card": {
+        "Front": "What is the speed of light in a vacuum?",
+        "Back": "Approximately 299,792 kilometers per second."
+      }
+    },
+    {
+      "input": "In economics, supply and demand determine the price of goods and services in a market.",
+      "card": {
+        "Front": "What determines the price of goods and services in economics?",
+        "Back": "Supply and demand."
+      }
+    },
+    {
+      "input": "The programming language C was developed in the early 1970s by Dennis Ritchie.",
+      "card": {
+        "Front": "Who developed the programming language C and when?",
+        "Back": "Dennis Ritchie in the early 1970s."
+      }
+    },
+    {
+      "input": "Pi is an irrational number approximately equal to 3.14159, representing the ratio of a circle's circumference to its diameter.",
+      "card": {
+        "Front": "What is Pi and what does it represent?",
+        "Back": "An irrational number (~3.14159) representing the ratio of a circle's circumference to its diameter."
+      }
+    },
+    {
+      "input": "The Eiffel Tower was completed in 1889 and is located in Paris, France.",
+      "card": {
+        "Front": "When was the Eiffel Tower completed and where is it located?",
+        "Back": "Completed in 1889, located in Paris, France."
+      }
+    },
+    {
+      "input": "In physics, force is defined as mass multiplied by acceleration (F = ma).",
+      "card": {
+        "Front": "How is force defined in physics?",
+        "Back": "Force equals mass multiplied by acceleration (F = ma)."
+      }
+    },
+    {
+      "input": "In Spanish, the word for 'friend' is 'amigo' (male) or 'amiga' (female).",
+      "card": {
+        "Front": "What is the Spanish word for 'friend'?",
+        "Back": "'Amigo' (male) or 'amiga' (female)."
+      }
+    },
+    {
+      "input": "The Amazon Rainforest is the largest rainforest in the world, spanning nine countries in South America.",
+      "card": {
+        "Front": "What is the largest rainforest in the world and where is it located?",
+        "Back": "The Amazon Rainforest, spanning nine countries in South America."
+      }
+    },
+    {
+      "input": "Photosynthesis produces glucose and oxygen from carbon dioxide, water, and sunlight.",
+      "card": {
+        "Front": "What are the products of photosynthesis?",
+        "Back": "Glucose and oxygen."
+      }
+    },
+    {
+      "input": "Java is a high-level programming language developed by Sun Microsystems in 1995.",
+      "card": {
+        "Front": "What is Java and when was it developed?",
+        "Back": "A high-level programming language developed by Sun Microsystems in 1995."
+      }
+    },
+    {
+      "input": "The human genome contains approximately 3 billion base pairs of DNA.",
+      "card": {
+        "Front": "How many base pairs of DNA does the human genome contain?",
+        "Back": "Approximately 3 billion base pairs."
+      }
+    },
+    {
+      "input": "The capital of Australia is Canberra.",
+      "card": {
+        "Front": "What is the capital of Australia?",
+        "Back": "Canberra."
+      }
+    },
+    {
+      "input": "The primary colors of light are red, green, and blue.",
+      "card": {
+        "Front": "What are the primary colors of light?",
+        "Back": "Red, green, and blue."
+      }
+    },
+    {
+      "input": "The first president of the United States was George Washington.",
+      "card": {
+        "Front": "Who was the first president of the United States?",
+        "Back": "George Washington."
+      }
+    },
+    {
+      "input": "The square root of 16 is 4.",
+      "card": {
+        "Front": "What is the square root of 16?",
+        "Back": "4."
+      }
+    },
+    {
+      "input": "A right angle measures 90 degrees.",
+      "card": {
+        "Front": "How many degrees does a right angle measure?",
+        "Back": "90 degrees."
+      }
+    },
+    {
+      "input": "The human body has 206 bones.",
+      "card": {
+        "Front": "How many bones are in the human body?",
+        "Back": "206 bones."
+      }
+    },
+    {
+      "input": "Mount Everest is the tallest mountain in the world, standing at 8,848.86 meters.",
+      "card": {
+        "Front": "What is the tallest mountain in the world and how tall is it?",
+        "Back": "Mount Everest, 8,848.86 meters."
+      }
+    },
+    {
+      "input": "The binary number system uses only 0s and 1s.",
+      "card": {
+        "Front": "What digits does the binary number system use?",
+        "Back": "0s and 1s."
+      }
+    }
+]
